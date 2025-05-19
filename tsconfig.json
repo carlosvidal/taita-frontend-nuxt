@@ -1,0 +1,35 @@
+{
+  // https://nuxt.com/docs/guide/concepts/typescript
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "types": ["@nuxt/types", "@nuxtjs/device"],
+    "paths": {
+      "~/*": ["./*"],
+      "@/*": ["./*"]
+    },
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": [
+    ".nuxt/**/*.d.ts",
+    "types/*.d.ts",
+    "types/**/*.d.ts",
+    "components/*.d.ts",
+    "components/**/*.d.ts",
+    "composables/*.d.ts",
+    "composables/**/*.d.ts",
+    "plugins/*.d.ts",
+    "plugins/**/*.d.ts",
+    "app.vue",
+    "error.vue"
+  ],
+  "exclude": ["node_modules"]
+}
