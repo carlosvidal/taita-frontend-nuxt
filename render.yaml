@@ -1,9 +1,9 @@
 services:
-  - type: web
+  - type: static
     name: taita-frontend
     env: node
-    buildCommand: npm install && npm run build
-    startCommand: node .output/server/index.mjs
+    buildCommand: npm install && npm run generate
+    publishDir: dist
     envVars:
       - key: NODE_ENV
         value: production

@@ -41,6 +41,11 @@ export default defineNuxtConfig({
     pageTransition: { name: 'page', mode: 'out-in' },
     layoutTransition: { name: 'layout', mode: 'out-in' },
   },
+
+  ssr: true,  // Para generar páginas estáticas con datos pre-renderizados
+  nitro: {
+    preset: 'static'  // Especifica que el build será estático
+  },
   
   // Modules
   modules: [
@@ -114,6 +119,57 @@ export default defineNuxtConfig({
   // Build configuration
   build: {
     transpile: ['@headlessui/vue'],
+  },
+
+  hooks: {
+    async 'nitro:config'(nitroConfig) {
+      if (nitroConfig.dev) return
+      
+      // Inicializar rutas con las páginas estáticas básicas
+      const routes = [
+        '/',
+        '/about',
+        '/contact',
+        '/blog',
+        '/search',
+        '/sitemap.xml'
+      ]
+      
+      try {
+        // Importar ofetch dinámicamente
+        const { ofetch } = await import('ofetch')
+        
+        // Intentar obtener los posts de la API
+        const response = await ofetch('https://taita-api.onrender.com/api/posts?fields=slug&limit=50', {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          // No fallar en caso de error 401
+          ignoreResponseError: true
+        })
+        
+        // Si hay datos, agregar las rutas de los posts
+        if (response && response.data) {
+          const postRoutes = response.data.map((post: any) => `/blog/${post.slug}`)
+          routes.push(...postRoutes)
+          console.log(`✓ Se agregaron ${postRoutes.length} rutas de posts`)
+        } else {
+          console.warn('No se pudieron obtener las rutas dinámicas de la API. Usando rutas estáticas.')
+        }
+      } catch (error) {
+        console.warn('No se pudieron obtener las rutas dinámicas. Usando solo rutas estáticas.')
+        if (error instanceof Error) {
+          console.warn('Error detallado:', error.message)
+        }
+      }
+      
+      // Configurar las rutas para prerenderizado
+      nitroConfig.prerender = nitroConfig.prerender || {}
+      nitroConfig.prerender.routes = [...new Set(routes)] // Eliminar duplicados
+      
+      console.log('Rutas a pre-renderizar:', nitroConfig.prerender.routes)
+    }
   },
   
   // Sourcemap configuration
