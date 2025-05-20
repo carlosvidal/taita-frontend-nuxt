@@ -246,7 +246,7 @@ export const useBlogStore = defineStore('blog', () => {
   return {
     // State
     posts,
-    featuredPosts: computed(() => posts.value.filter(post => post.featured)),
+    featuredPosts,
     categories,
     tags,
     currentPost,
@@ -261,15 +261,8 @@ export const useBlogStore = defineStore('blog', () => {
     
     // Actions
     fetchPosts,
-    fetchPost,
-    fetchCategories,
-    fetchCategory,
-    fetchTags,
-    fetchTag,
-    fetchPostsByCategory,
     fetchPostsByTag,
-    searchPosts,
-    setTenant,
+    setTenant, // Añadimos la acción al store
     
     // Helpers
     getImageUrl,
