@@ -36,21 +36,59 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
+import { useBlogStore } from '~/stores/blog';
+
+// Initialize store and state
+const blogStore = useBlogStore();
 const searchQuery = ref('');
 const results = ref([]);
 const searchPerformed = ref(false);
-const blogStore = useBlogStore();
+const loading = ref(false);
+const error = ref<string | null>(null);
 
 const search = async () => {
   if (!searchQuery.value.trim()) return;
   
   try {
-    const response = await blogStore.searchPosts(searchQuery.value);
-    results.value = response || [];
+    loading.value = true;
+    error.value = null;
+    
+    // Determinar el tenant basado en el hostname
+    const hostname = process.client ? window.location.hostname : '';
+    const subdomain = hostname.split('.')[0];
+    const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+      ? 'taita' 
+      : subdomain;
+    
+    // Configurar el tenant
+    blogStore.setTenant(tenant);
+    
+    console.log('Buscando con query:', searchQuery.value);
+    const response = await blogStore.searchPosts(searchQuery.value, {
+      include: 'category,tags,author',
+      status: 'published'
+    });
+    
+    console.log('Resultados de búsqueda:', response);
+    results.value = Array.isArray(response) ? response : [];
     searchPerformed.value = true;
-  } catch (error) {
-    console.error('Error al buscar:', error);
+    
+  } catch (err: any) {
+    console.error('Error al buscar:', err);
+    if (err.response) {
+      console.error('Error details:', {
+        status: err.response.status,
+        data: err.response.data,
+        url: err.response.config?.url
+      });
+      error.value = `Error al buscar: ${err.response.status} ${err.response.statusText}`;
+    } else {
+      error.value = 'Error al realizar la búsqueda. Por favor, intente de nuevo.';
+    }
     results.value = [];
+  } finally {
+    loading.value = false;
   }
 };
 

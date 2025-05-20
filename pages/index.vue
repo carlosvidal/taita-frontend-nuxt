@@ -70,12 +70,21 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useBlogStore } from '~/stores/blog';
+import type { Post } from '~/stores/blog';
+
+// Importaciones de Nuxt
+const config = useRuntimeConfig();
+const route = useRoute();
 
 // Initialize store and state
 const blogStore = useBlogStore();
 const recentPosts = ref<Array<any>>([]);
 const loading = ref<boolean>(true);
 const error = ref<string | null>(null);
+
+// Configuración del tenant
+const config = useRuntimeConfig();
+const route = useRoute();
 
 // Format date helper
 const formatDate = (dateString: string) => {
@@ -95,11 +104,18 @@ onMounted(async () => {
     
     console.log('Iniciando carga de posts...');
     
-    // Configurar el tenant (debería venir de la configuración o del dominio)
-    blogStore.setTenant('taita');
+    // Determinar el tenant basado en el hostname
+    const hostname = process.client ? window.location.hostname : '';
+    const subdomain = hostname.split('.')[0];
+    const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+      ? 'taita' 
+      : subdomain;
+    
+    // Configurar el tenant
+    blogStore.setTenant(tenant);
     
     // Fetch recent posts
-    const posts = await blogStore.fetchPosts({ 
+    const response = await blogStore.fetchPosts({ 
       limit: 5,
       include: 'category,tags,author',
       status: 'published',
@@ -107,8 +123,11 @@ onMounted(async () => {
       order: 'desc'
     });
     
-    console.log('Posts recibidos:', posts);
-    recentPosts.value = Array.isArray(posts) ? posts : [];
+    console.log('Respuesta de la API:', response);
+    
+    // Manejar tanto la respuesta directa como la paginada
+    const posts = Array.isArray(response) ? response : (response?.data || []);
+    recentPosts.value = posts;
     
     if (recentPosts.value.length === 0) {
       console.warn('No se encontraron posts. Verifica la respuesta de la API.');

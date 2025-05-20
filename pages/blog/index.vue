@@ -258,11 +258,14 @@
 <script setup lang="ts">
 import { ArrowLongLeftIcon, ArrowLongRightIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import { useBlogStore } from '~/stores/blog';
+import { useRuntimeConfig, useRoute, useRouter } from '#imports';
 
+// Initialize store and router
+const blogStore = useBlogStore();
 const route = useRoute();
 const router = useRouter();
+const config = useRuntimeConfig();
 const blogStore = useBlogStore();
 
 // Estado
@@ -324,12 +327,28 @@ const fetchPosts = async () => {
   try {
     loading.value = true;
     
+    // Determinar el tenant basado en el hostname
+    const hostname = process.client ? window.location.hostname : '';
+    const subdomain = hostname.split('.')[0];
+    const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+      ? 'taita' 
+      : subdomain;
+    
+    // Configurar el tenant
+    blogStore.setTenant(tenant);
+    
     const params: Record<string, any> = {
       page: currentPage.value,
       per_page: perPage.value,
       search: searchQuery.value || undefined,
       sort: sortBy.value,
+      include: 'category,tags,author',
+      status: 'published',
+      orderBy: 'published_at',
+      order: 'desc'
     };
+    
+    console.log('Fetching posts with params:', params);
     
     const response = await blogStore.fetchPosts(params);
     console.log('Posts response:', response);
@@ -349,8 +368,15 @@ const fetchPosts = async () => {
       totalItems.value = 0;
     }
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error al cargar las publicaciones:', error);
+    if (error.response) {
+      console.error('Error details:', {
+        status: error.response.status,
+        data: error.response.data,
+        url: error.response.config?.url
+      });
+    }
     posts.value = [];
     totalItems.value = 0;
   } finally {
