@@ -196,8 +196,8 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant to headers instead of query params
-      headers['X-Tenant'] = tenant;
+      // Add tenant as a query parameter instead of header
+      query.append('tenant', tenant);
       
       const url = `${apiBaseUrl.value}/posts?${query.toString()}`;
       console.log('Solicitando posts desde:', url);
@@ -252,8 +252,8 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant to headers
-      headers['X-Tenant'] = tenant;
+      // Add tenant as a query parameter instead of header
+      query.append('tenant', tenant);
       
       const url = `${apiBaseUrl.value}/posts/${slug}?${query.toString()}`;
       console.log('Solicitando post desde:', url);
@@ -301,8 +301,8 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant to headers
-      headers['X-Tenant'] = tenant;
+      // Add tenant as a query parameter instead of header
+      query.append('tenant', tenant);
       
       const url = `${apiBaseUrl.value}/categories?${query.toString()}`;
       console.log('Solicitando categorías desde:', url);
@@ -347,8 +347,8 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant to headers
-      headers['X-Tenant'] = tenant;
+      // Add tenant as a query parameter instead of header
+      query.append('tenant', tenant);
       
       const url = `${apiBaseUrl.value}/categories/${slug}?${query.toString()}`;
       console.log('Solicitando categoría desde:', url);
@@ -411,8 +411,8 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant to headers
-      headers['X-Tenant'] = tenant;
+      // Add tenant as a query parameter instead of header
+      query.append('tenant', tenant);
       
       const url = `${apiBaseUrl.value}/tags?${query.toString()}`;
       console.log('Solicitando etiquetas desde:', url);
@@ -467,8 +467,8 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant to headers
-      headers['X-Tenant'] = tenant;
+      // Add tenant as a query parameter instead of header
+      query.append('tenant', tenant);
       
       const url = `${apiBaseUrl.value}/tags/${tagSlug}/posts?${query.toString()}`;
       console.log('Fetching posts by tag from:', url);
@@ -530,8 +530,8 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant to headers
-      headers['X-Tenant'] = tenant;
+      // Add tenant as a query parameter instead of header
+      query.append('tenant', tenant);
       
       console.log('Using tenant:', tenant);
       
