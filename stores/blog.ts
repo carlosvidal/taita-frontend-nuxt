@@ -287,18 +287,28 @@ export const useBlogStore = defineStore('blog', () => {
       // Add subdomain as a query parameter
       query.append('subdomain', tenant);
       
-      const url = `${apiBaseUrl.value}/posts/public/${slug}?${query.toString()}`;
+      // Use the public slug-based endpoint
+      const url = `${apiBaseUrl.value}/posts/public/slug/${slug}?${query.toString()}`;
       console.log('Solicitando post desde:', url);
       console.log('Usando tenant:', tenant);
       
-      const response = await $fetch<{ data: Post }>(url, {
+      const response = await $fetch<Post | { data: Post }>(url, {
         method: 'GET',
         headers,
         credentials: 'omit',
       });
       
-      currentPost.value = response.data;
-      return response.data;
+      console.log('Respuesta del post:', response);
+      
+      // Handle both direct and wrapped responses
+      const postData = (response as { data?: Post }).data || response as Post;
+      
+      if (!postData) {
+        throw new Error('Post no encontrado');
+      }
+      
+      currentPost.value = postData;
+      return postData;
     } catch (err: any) {
       console.error('Error fetching post:', err);
       error.value = err.message || 'Error al cargar la publicación';
@@ -320,7 +330,13 @@ export const useBlogStore = defineStore('blog', () => {
       };
       
       // Add params to query
-      Object.entries(params).forEach(([key, value]) => {
+      const queryParams = {
+        ...params,
+        include: 'posts_count',
+        status: 'active'
+      };
+      
+      Object.entries(queryParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           query.append(key, value.toString());
         }
@@ -340,15 +356,25 @@ export const useBlogStore = defineStore('blog', () => {
       console.log('Solicitando categorías desde:', url);
       console.log('Usando tenant:', tenant);
       
-      const response = await $fetch<{ data: Category[] }>(url, {
+      const response = await $fetch<Category[] | { data: Category[] }>(url, {
         method: 'GET',
         headers,
         credentials: 'omit',
       });
       
       console.log('Respuesta de categorías:', response);
-      categories.value = response.data || [];
-      return response.data || [];
+      
+      // Handle both array and paginated responses
+      if (Array.isArray(response)) {
+        categories.value = response;
+        return response;
+      } else if (response && 'data' in response) {
+        categories.value = response.data || [];
+        return response.data || [];
+      }
+      
+      categories.value = [];
+      return [];
     } catch (err: any) {
       console.error('Error fetching categories:', err);
       error.value = err.message || 'Error al cargar las categorías';
