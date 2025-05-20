@@ -332,11 +332,27 @@ const fetchPosts = async () => {
     };
     
     const response = await blogStore.fetchPosts(params);
-    posts.value = response.data || [];
-    totalItems.value = response.total || 0;
+    console.log('Posts response:', response);
+    
+    // Handle both array and paginated response
+    if (Array.isArray(response)) {
+      posts.value = response;
+      totalItems.value = response.length;
+    } else if (response && 'data' in response) {
+      posts.value = response.data || [];
+      totalItems.value = response.total || 0;
+      currentPage.value = response.current_page || 1;
+      perPage.value = response.per_page || 10;
+    } else {
+      console.error('Unexpected response format:', response);
+      posts.value = [];
+      totalItems.value = 0;
+    }
     
   } catch (error) {
     console.error('Error al cargar las publicaciones:', error);
+    posts.value = [];
+    totalItems.value = 0;
   } finally {
     loading.value = false;
   }
@@ -344,18 +360,48 @@ const fetchPosts = async () => {
 
 const fetchCategories = async () => {
   try {
-    categories.value = await blogStore.fetchCategories();
+    const response = await blogStore.fetchCategories();
+    console.log('Categories response:', response);
+    
+    // Handle both array and paginated response
+    if (Array.isArray(response)) {
+      categories.value = response;
+    } else if (response && 'data' in response) {
+      categories.value = response.data || [];
+    } else {
+      console.error('Unexpected categories response format:', response);
+      categories.value = [];
+    }
   } catch (error) {
     console.error('Error al cargar las categorías:', error);
+    categories.value = [];
   }
 };
 
 const fetchPopularTags = async () => {
   try {
-    // Asumiendo que tienes un método en el store para obtener etiquetas populares
-    popularTags.value = await blogStore.fetchTags({ popular: true, limit: 10 });
+    const response = await blogStore.fetchTags({ 
+      popular: true, 
+      limit: 10,
+      page: 1,
+      per_page: 10,
+      sort: 'popular'
+    });
+    
+    console.log('Popular tags response:', response);
+    
+    // Handle both array and paginated response
+    if (Array.isArray(response)) {
+      popularTags.value = response;
+    } else if (response && 'data' in response) {
+      popularTags.value = response.data || [];
+    } else {
+      console.error('Unexpected tags response format:', response);
+      popularTags.value = [];
+    }
   } catch (error) {
     console.error('Error al cargar las etiquetas populares:', error);
+    popularTags.value = [];
   }
 };
 

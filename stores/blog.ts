@@ -162,7 +162,13 @@ export const useBlogStore = defineStore('blog', () => {
     currentTenant.value = tenant;
   };
 
-  const fetchPosts = async (params: Record<string, any> = {}) => {
+  const fetchPosts = async (params: Record<string, any> = {}): Promise<{
+    data: Post[];
+    total: number;
+    current_page: number;
+    last_page: number;
+    per_page: number;
+  }> => {
     loading.value = true;
     error.value = null;
     
@@ -204,14 +210,40 @@ export const useBlogStore = defineStore('blog', () => {
       console.log('Usando tenant:', tenant);
       
       // For public endpoints, don't include credentials to avoid CORS issues
-      const response = await $fetch<{ data: Post[] }>(url, {
+      const response = await $fetch<Post[] | { data: Post[] }>(url, {
         method: 'GET',
         headers,
         credentials: 'omit',
       });
       
       console.log('Respuesta de la API:', response);
-      return response?.data || [];
+      
+      // Handle both array and paginated responses
+      if (Array.isArray(response)) {
+        return {
+          data: response,
+          total: response.length,
+          current_page: 1,
+          last_page: 1,
+          per_page: response.length,
+        };
+      } else if (response && 'data' in response) {
+        return {
+          data: response.data || [],
+          total: response.total || 0,
+          current_page: response.current_page || 1,
+          last_page: response.last_page || 1,
+          per_page: response.per_page || 10,
+        };
+      }
+      
+      return {
+        data: [],
+        total: 0,
+        current_page: 1,
+        last_page: 1,
+        per_page: 10,
+      };
     } catch (err: any) {
       console.error('Error fetching posts:', err);
       error.value = 'No se pudieron cargar las publicaciones. Por favor, intente nuevamente más tarde.';
@@ -378,7 +410,13 @@ export const useBlogStore = defineStore('blog', () => {
     }
   };
 
-  const fetchTags = async (params: Record<string, any> = {}) => {
+  const fetchTags = async (params: Record<string, any> = {}): Promise<{
+    data: Tag[];
+    total: number;
+    current_page: number;
+    last_page: number;
+    per_page: number;
+  }> => {
     loading.value = true;
     error.value = null;
     
@@ -418,15 +456,46 @@ export const useBlogStore = defineStore('blog', () => {
       console.log('Solicitando etiquetas desde:', url);
       console.log('Usando tenant:', tenant);
       
-      const response = await $fetch<{ data: Tag[] }>(url, {
+      const response = await $fetch<Tag[] | { data: Tag[] }>(url, {
         method: 'GET',
         headers,
         credentials: 'omit',
       });
       
       console.log('Respuesta de etiquetas:', response);
-      tags.value = response.data;
-      return response.data;
+      
+      let tagsData: Tag[] = [];
+      
+      // Handle both array and paginated responses
+      if (Array.isArray(response)) {
+        tagsData = response;
+        tags.value = response;
+        return {
+          data: response,
+          total: response.length,
+          current_page: 1,
+          last_page: 1,
+          per_page: response.length,
+        };
+      } else if (response && 'data' in response) {
+        tagsData = response.data || [];
+        tags.value = tagsData;
+        return {
+          data: tagsData,
+          total: response.total || 0,
+          current_page: response.current_page || 1,
+          last_page: response.last_page || 1,
+          per_page: response.per_page || 10,
+        };
+      }
+      
+      return {
+        data: [],
+        total: 0,
+        current_page: 1,
+        last_page: 1,
+        per_page: 10,
+      };
     } catch (err: any) {
       console.error('Error fetching tags:', err);
       error.value = err.message || 'Error al cargar las etiquetas';
