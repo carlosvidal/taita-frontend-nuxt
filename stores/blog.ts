@@ -196,10 +196,10 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant as a query parameter instead of header
-      query.append('tenant', tenant);
+      // Add subdomain as a query parameter
+      query.append('subdomain', tenant);
       
-      const url = `${apiBaseUrl.value}/posts?${query.toString()}`;
+      const url = `${apiBaseUrl.value}/posts/public?${query.toString()}`;
       console.log('Solicitando posts desde:', url);
       console.log('Usando tenant:', tenant);
       
@@ -252,10 +252,10 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant as a query parameter instead of header
-      query.append('tenant', tenant);
+      // Add subdomain as a query parameter
+      query.append('subdomain', tenant);
       
-      const url = `${apiBaseUrl.value}/posts/${slug}?${query.toString()}`;
+      const url = `${apiBaseUrl.value}/posts/public/${slug}?${query.toString()}`;
       console.log('Solicitando post desde:', url);
       console.log('Usando tenant:', tenant);
       
@@ -301,10 +301,10 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant as a query parameter instead of header
-      query.append('tenant', tenant);
+      // Add subdomain as a query parameter
+      query.append('subdomain', tenant);
       
-      const url = `${apiBaseUrl.value}/categories?${query.toString()}`;
+      const url = `${apiBaseUrl.value}/categories/public?${query.toString()}`;
       console.log('Solicitando categorías desde:', url);
       console.log('Usando tenant:', tenant);
       
@@ -347,10 +347,10 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant as a query parameter instead of header
-      query.append('tenant', tenant);
+      // Add subdomain as a query parameter
+      query.append('subdomain', tenant);
       
-      const url = `${apiBaseUrl.value}/categories/${slug}?${query.toString()}`;
+      const url = `${apiBaseUrl.value}/categories/public/${slug}?${query.toString()}`;
       console.log('Solicitando categoría desde:', url);
       console.log('Usando tenant:', tenant);
       
@@ -411,10 +411,10 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant as a query parameter instead of header
-      query.append('tenant', tenant);
+      // Add subdomain as a query parameter
+      query.append('subdomain', tenant);
       
-      const url = `${apiBaseUrl.value}/tags?${query.toString()}`;
+      const url = `${apiBaseUrl.value}/tags/public?${query.toString()}`;
       console.log('Solicitando etiquetas desde:', url);
       console.log('Usando tenant:', tenant);
       
@@ -467,10 +467,10 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant as a query parameter instead of header
-      query.append('tenant', tenant);
+      // Add subdomain as a query parameter
+      query.append('subdomain', tenant);
       
-      const url = `${apiBaseUrl.value}/tags/${tagSlug}/posts?${query.toString()}`;
+      const url = `${apiBaseUrl.value}/tags/public/${tagSlug}?${query.toString()}`;
       console.log('Fetching posts by tag from:', url);
       console.log('Using tenant:', tenant);
       
@@ -530,12 +530,12 @@ export const useBlogStore = defineStore('blog', () => {
         ? 'taita' 
         : subdomain;
       
-      // Add tenant as a query parameter instead of header
-      query.append('tenant', tenant);
+      // Add subdomain as a query parameter
+      query.append('subdomain', tenant);
       
-      console.log('Using tenant:', tenant);
+      console.log('Using subdomain:', tenant);
       
-      const url = `${apiBaseUrl.value}/categories/${categorySlug}/posts?${query.toString()}`;
+      const url = `${apiBaseUrl.value}/categories/public/${categorySlug}/posts?${query.toString()}`;
       console.log('Fetching posts by category from:', url);
       
       const response = await $fetch<{ data: Post[] }>(url, {
