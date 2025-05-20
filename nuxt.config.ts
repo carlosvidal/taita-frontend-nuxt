@@ -1,37 +1,132 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  // Runtime configuration
-  runtimeConfig: {
-    // Private keys are only available on the server
-    apiSecret: process.env.API_SECRET,
-    
-    // Public keys that are exposed to the client
-    public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://taita-api.onrender.com/api',
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://taita-api.onrender.com/api',
-      imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL || 'https://taita-api.onrender.com',
-      siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'Taita Blog',
-      tenantDomain: process.env.NUXT_PUBLIC_TENANT_DOMAIN || 'demo.taita.blog',
-      
-      // Feature flags
-      enableAnalytics: process.env.NUXT_PUBLIC_ENABLE_ANALYTICS === 'true',
-      enableMaintenance: process.env.NUXT_PUBLIC_ENABLE_MAINTENANCE === 'false',
-      
-      // SSR/SSG configuration
-      ssr: true,
-      static: process.env.NUXT_PUBLIC_STATIC === 'true' || false
+  // Enable SSR for better compatibility
+  ssr: true,
+  
+  // Use Vite as the default builder
+  builder: 'vite',
+  
+  // Target server-side rendering
+  target: 'server',
+  
+  // Disable source maps in production for better performance
+  sourcemap: process.env.NODE_ENV !== 'production',
+  
+  // Configure Nitro for server-side rendering
+  nitro: {
+    // Disable prerendering completely
+    prerender: {
+      crawlLinks: false,
+      routes: [],
+      ignore: ['/*']
+    },
+    // Disable sourcemaps in production
+    sourceMap: process.env.NODE_ENV !== 'production',
+  },
+  
+  // Add a hook to handle build process
+  hooks: {
+    'nitro:config': (nitroConfig) => {
+      // Ensure prerendering is disabled
+      if (nitroConfig.prerender) {
+        nitroConfig.prerender.routes = [];
+        nitroConfig.prerender.ignore = ['/*'];
+        nitroConfig.prerender.crawlLinks = false;
+      }
+    },
+    'build:before': () => {
+      console.log('Building in SSR mode (no static generation)');
     }
   },
   
-  // App configuration
+  // Build configuration
+  build: {
+    // Add any necessary webpack configuration here
+    extend(config, { isClient }) {
+      if (isClient) {
+        // Client-side specific configurations
+      } else {
+        // Server-side specific configurations
+      }
+    }
+  },
+  
+  // Reglas de rutas para generación estática
+  routeRules: {
+    // Páginas estáticas
+    '/': { static: true },
+    '/blog': { static: true },
+    '/search': { static: true },
+    '/about': { static: true },
+    '/contact': { static: true },
+    
+    // API routes
+    '/api/**': { cors: true, headers: { 'access-control-allow-methods': 'GET' } },
+    
+    // Cacheo de assets
+    '/_nuxt/**': { headers: { 'cache-control': 'public, max-age=31536000' } },
+    '/images/**': { headers: { 'cache-control': 'public, max-age=31536000' } },
+    '/favicon.ico': { headers: { 'cache-control': 'public, max-age=31536000' } }
+  },
+
+  // Módulos
+  modules: [
+    '@nuxtjs/tailwindcss',
+    '@pinia/nuxt',
+    '@pinia-plugin-persistedstate/nuxt',
+    '@nuxt/image',
+    'nuxt-simple-sitemap',
+    'nuxt-simple-robots',
+    'nuxt-icon',
+    '@nuxtjs/color-mode',
+    '@nuxtjs/i18n',
+    '@nuxtjs/algolia',
+    '@nuxtjs/plausible',
+    'nuxt-swiper',
+    'nuxt-og-image',
+    'nuxt-umami',
+  ],
+  
+  // Configuración de CSS
+  css: [
+    '~/assets/css/main.css',
+  ],
+  
+  // PostCSS
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
+    },
+  },
+  
+  // Variables de entorno
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || '',
+      imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL || '',
+      siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'Taita Blog',
+      tenantDomain: process.env.NUXT_PUBLIC_TENANT_DOMAIN || 'taita',
+      enableAnalytics: process.env.NUXT_PUBLIC_ENABLE_ANALYTICS === 'true',
+      enableMaintenance: process.env.NUXT_PUBLIC_ENABLE_MAINTENANCE === 'true',
+      isStatic: process.env.NUXT_PUBLIC_STATIC === 'true',
+    },
+  },
+  
+  // Configuración del servidor de desarrollo
+  devServer: {
+    port: 3000,
+  },
+  
+  // Configuración de la aplicación
   app: {
     head: {
       title: 'Taita Blog',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'A modern blog built with Nuxt 3 and TypeScript' },
-        { name: 'theme-color', content: '#ffffff' },
+        { name: 'description', content: 'Taita Blog - Un blog moderno con Nuxt 3' },
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },

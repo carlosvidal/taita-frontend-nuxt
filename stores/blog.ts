@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import type { Ref } from 'vue';
 import { useRuntimeConfig } from '#app';
 import { useNuxtApp } from '#imports';
 import { useAuthStore } from '~/composables/useAuth';
@@ -58,53 +59,107 @@ interface PaginatedResponse<T> {
   total: number;
 }
 
+// Default values for server-side rendering
+const defaultConfig = {
+  apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://taita-api.onrender.com/api',
+  apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://taita-api.onrender.com/api',
+  imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL || 'https://taita-api.onrender.com',
+  siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'Taita Blog',
+  tenantDomain: process.env.NUXT_PUBLIC_TENANT_DOMAIN || 'taita',
+  tenant: process.env.NUXT_PUBLIC_TENANT || 'taita'
+};
+
+// Helper function to safely access runtime config
+const useSafeConfig = () => {
+  // During SSR or build time, use default config with process.env overrides
+  if (process.server) {
+    return {
+      ...defaultConfig,
+      ...(process.env.NUXT_PUBLIC_API_BASE && { apiBase: process.env.NUXT_PUBLIC_API_BASE }),
+      ...(process.env.NUXT_PUBLIC_API_URL && { apiUrl: process.env.NUXT_PUBLIC_API_URL }),
+      ...(process.env.NUXT_PUBLIC_IMAGE_URL && { imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL }),
+      ...(process.env.NUXT_PUBLIC_SITE_NAME && { siteName: process.env.NUXT_PUBLIC_SITE_NAME }),
+      ...(process.env.NUXT_PUBLIC_TENANT && { tenant: process.env.NUXT_PUBLIC_TENANT })
+    };
+  }
+  
+  // In client-side, use runtime config or fallback to defaults
+  try {
+    const config = useRuntimeConfig();
+    return {
+      ...defaultConfig,
+      ...(config.public || {})
+    };
+  } catch (e) {
+    console.error('Error accessing runtime config:', e);
+    return defaultConfig;
+  }
+};
+
 export const useBlogStore = defineStore('blog', () => {
-  // Initialize Nuxt app and config inside the store function
+  // Initialize Nuxt app and config
   const nuxtApp = process.client ? useNuxtApp() : null;
-  const config = useRuntimeConfig();
   const authStore = useAuthStore();
-  
-  // Default values for server-side rendering
-  const defaultConfig = {
-    public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || '',
-      imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL || ''
-    }
-  };
-  
-  // Safely get config values
-  const safeConfig = process.client ? config.public : defaultConfig.public;
+  const config = useSafeConfig();
 
   // State
-  const posts = ref<Post[]>([]);
+  const posts = ref<Post[]>([]) as Ref<Post[]>;
   const featuredPosts = ref<Post[]>([]);
-  const categories = ref<Category[]>([]);
-  const tags = ref<Tag[]>([]);
-  const currentPost = ref<Post | null>(null);
+  const categories = ref<Category[]>([]) as Ref<Category[]>;
+  const tags = ref<Tag[]>([]) as Ref<Tag[]>;
+  const currentPost = ref<Post | null>(null) as Ref<Post | null>;
   const loading = ref(false);
   const error = ref<string | null>(null);
   const currentPage = ref(1);
   const totalPages = ref(1);
   const perPage = ref(10);
   const totalItems = ref(0);
-  const currentTenant = ref('taita');
-  const apiBaseUrl = ref('');
-  const imageBaseUrl = ref('');
+  const currentTenant = ref(config.tenantDomain);
+  const apiBaseUrl = ref(`${config.apiBase}/${config.tenantDomain}`);
+  const imageBaseUrl = ref(config.imageUrl);
 
   // Update URLs when config changes
   const updateUrls = () => {
-    if (process.client) {
-      apiBaseUrl.value = `${safeConfig.apiBase}/${currentTenant.value}`;
-      imageBaseUrl.value = safeConfig.imageUrl;
-    } else {
-      apiBaseUrl.value = `${safeConfig.apiBase}/taita`;
-      imageBaseUrl.value = safeConfig.imageUrl;
+    try {
+      let baseUrl = config.apiBase || '';
+      
+      // Ensure baseUrl doesn't end with a slash
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.slice(0, -1);
+      }
+      
+      // Set the API base URL with tenant
+      if (currentTenant.value) {
+        apiBaseUrl.value = `${baseUrl}/${currentTenant.value}`;
+      } else {
+        apiBaseUrl.value = baseUrl;
+      }
+      
+      // Set the image base URL
+      imageBaseUrl.value = config.imageUrl || '';
+      
+      if (process.dev) {
+        console.log('[BlogStore] Updated URLs:', {
+          apiBaseUrl: apiBaseUrl.value,
+          imageBaseUrl: imageBaseUrl.value,
+          tenant: currentTenant.value,
+          config: config
+        });
+      }
+    } catch (error) {
+      console.error('[BlogStore] Error updating URLs:', error);
     }
   };
   
   // Initialize URLs
-  updateUrls();
+  if (process.client) {
+    // Only update URLs on client side
+    updateUrls();
+  } else {
+    // For SSR, set default URLs
+    apiBaseUrl.value = config.apiBase;
+    imageBaseUrl.value = config.imageUrl;
+  }
 
   // Getters
   const recentPosts = computed(() => {
@@ -113,54 +168,81 @@ export const useBlogStore = defineStore('blog', () => {
       .slice(0, 5);
   });
 
-  // Actions
+  // Fetch posts with pagination and filters
   const fetchPosts = async (params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
+    // Skip API calls during SSR for static generation
+    if (process.server) {
+      if (process.dev) {
+        console.log('[BlogStore] Skipping fetchPosts during SSR/SSG');
+      }
+      return {
+        data: [],
+        current_page: 1,
+        last_page: 1,
+        per_page: params.perPage || 10,
+        total: 0,
+        from: 0,
+        to: 0,
+        path: '',
+        first_page_url: '',
+        last_page_url: '',
+        next_page_url: null,
+        prev_page_url: null
+      } as PaginatedResponse<Post>;
+    }
+
     loading.value = true;
     error.value = null;
-    
+
     try {
       const query = new URLSearchParams();
       
-      // Add query parameters
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          query.append(key, value.toString());
-        }
-      });
+      // Add pagination
+      if (params.page) query.append('page', params.page);
+      if (params.perPage) query.append('per_page', params.perPage);
       
-      // Get the current hostname to determine the tenant
-      const hostname = process.client ? window.location.hostname : '';
-      const subdomain = hostname.split('.')[0];
-      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
-        ? 'taita' 
-        : subdomain;
+      // Add filters
+      if (params.category) query.append('category', params.category);
+      if (params.tag) query.append('tag', params.tag);
+      if (params.search) query.append('search', params.search);
+      if (params.featured) query.append('featured', 'true');
       
-      // Add subdomain as a query parameter
-      query.append('subdomain', tenant);
-      
-      const url = `${apiBaseUrl.value}/posts?${query.toString()}`;
-      const response = await $fetch<{ data: Post[]; meta: any }>(url);
-      
-      // Update the store
-      posts.value = response.data || [];
-      
-      return {
-        data: response.data || [],
-        total: response.meta?.total || 0,
-        current_page: response.meta?.current_page || 1,
-        last_page: response.meta?.last_page || 1,
-        per_page: response.meta?.per_page || 10,
-      };
-    } catch (err: any) {
-      console.error('Error fetching posts:', err);
-      error.value = 'No se pudieron cargar las publicaciones';
-      
-      // Handle 401 Unauthorized
-      if (err.response?.status === 401) {
-        await authStore.logout();
-        await router.push('/login');
+      // Add sorting
+      if (params.sortBy) query.append('sort_by', params.sortBy);
+      if (params.sortOrder) query.append('sort_order', params.sortOrder);
+
+      if (process.dev) {
+        console.log(`[BlogStore] Fetching posts from: ${apiBaseUrl.value}/posts?${query.toString()}`);
       }
+
+      const response = await $fetch<PaginatedResponse<Post>>(
+        `${apiBaseUrl.value}/posts?${query.toString()}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          // Add timeout for the request
+          timeout: 10000,
+          // Add retry logic
+          retry: 2,
+          retryDelay: 1000,
+        }
+      );
+
+      posts.value = response.data || [];
+      currentPage.value = response.current_page || 1;
+      totalPages.value = response.last_page || 1;
+      perPage.value = response.per_page || 10;
+      totalItems.value = response.total || 0;
+
+      return response;
+    } catch (err: any) {
+      const errorMsg = err.message || 'Failed to fetch posts';
+      console.error('[BlogStore] Error fetching posts:', errorMsg, err);
+      error.value = errorMsg;
       
+      // Return empty data on error
       return {
         data: [],
         total: 0,

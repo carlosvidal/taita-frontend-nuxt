@@ -24,6 +24,7 @@
     "@nuxt/schema": "^3.17.3",
     "@nuxt/types": "^2.18.1",
     "@nuxt/typescript-build": "^3.0.2",
+    "@nuxt/webpack-builder": "^3.17.3",
     "@nuxtjs/color-mode": "^3.5.2",
     "@nuxtjs/device": "^3.2.4",
     "@nuxtjs/robots": "^5.2.10",
