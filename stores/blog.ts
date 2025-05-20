@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { useRuntimeConfig, useRouter } from '#app';
+import { useRuntimeConfig } from '#app';
 import { useNuxtApp } from '#imports';
 import { useAuthStore } from '~/composables/useAuth';
 
@@ -58,15 +58,23 @@ interface PaginatedResponse<T> {
   total: number;
 }
 
-// Get Nuxt app instance and config at the module level
-const nuxtApp = process.client ? useNuxtApp() : null;
-
 export const useBlogStore = defineStore('blog', () => {
-  // Get runtime config safely
-  const config = process.client ? useRuntimeConfig() : { public: { apiUrl: '', imageUrl: '' } };
-  const { $api } = nuxtApp || {};
+  // Initialize Nuxt app and config inside the store function
+  const nuxtApp = process.client ? useNuxtApp() : null;
+  const config = useRuntimeConfig();
   const authStore = useAuthStore();
-  const router = useRouter();
+  
+  // Default values for server-side rendering
+  const defaultConfig = {
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || '',
+      imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL || ''
+    }
+  };
+  
+  // Safely get config values
+  const safeConfig = process.client ? config.public : defaultConfig.public;
 
   // State
   const posts = ref<Post[]>([]);
@@ -76,9 +84,27 @@ export const useBlogStore = defineStore('blog', () => {
   const currentPost = ref<Post | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const currentPage = ref(1);
+  const totalPages = ref(1);
+  const perPage = ref(10);
+  const totalItems = ref(0);
   const currentTenant = ref('taita');
-  const apiBaseUrl = ref(process.client ? config.public.apiUrl : '');
-  const imageBaseUrl = ref(process.client ? config.public.imageUrl : '');
+  const apiBaseUrl = ref('');
+  const imageBaseUrl = ref('');
+
+  // Update URLs when config changes
+  const updateUrls = () => {
+    if (process.client) {
+      apiBaseUrl.value = `${safeConfig.apiBase}/${currentTenant.value}`;
+      imageBaseUrl.value = safeConfig.imageUrl;
+    } else {
+      apiBaseUrl.value = `${safeConfig.apiBase}/taita`;
+      imageBaseUrl.value = safeConfig.imageUrl;
+    }
+  };
+  
+  // Initialize URLs
+  updateUrls();
 
   // Getters
   const recentPosts = computed(() => {
@@ -238,15 +264,11 @@ export const useBlogStore = defineStore('blog', () => {
     }
   };
 
-  // Actions
+  // Set tenant and update API base URL
   const setTenant = (tenant: string) => {
+    if (!process.client) return;
     currentTenant.value = tenant;
-    // Update API base URL based on tenant
-    if (process.client) {
-      const config = useRuntimeConfig();
-      apiBaseUrl.value = `${config.public.apiBase || ''}/${tenant}`;
-      console.log(`Tenant actualizado a: ${tenant}`, { apiBaseUrl: apiBaseUrl.value });
-    }
+    updateUrls();
   };
 
   // Return the store

@@ -261,8 +261,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useBlogStore } from '~/stores/blog';
 import { useRuntimeConfig, useRoute, useRouter } from '#imports';
 
-// Initialize store and router
-const blogStore = useBlogStore();
+// Initialize Nuxt composables and store
 const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
@@ -324,17 +323,23 @@ const visiblePages = computed(() => {
 
 // Métodos
 const fetchPosts = async () => {
+  // Only run on client-side
+  if (!process.client) {
+    posts.value = [];
+    return;
+  }
+
   try {
     loading.value = true;
     
-    // Determinar el tenant basado en el hostname
-    const hostname = process.client ? window.location.hostname : '';
+    // Determine tenant based on hostname (client-side only)
+    const hostname = window?.location?.hostname || '';
     const subdomain = hostname.split('.')[0];
     const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
       ? 'taita' 
       : subdomain;
     
-    // Configurar el tenant
+    // Configure tenant
     blogStore.setTenant(tenant);
     
     const params: Record<string, any> = {
@@ -351,17 +356,25 @@ const fetchPosts = async () => {
     console.log('Fetching posts with params:', params);
     
     const response = await blogStore.fetchPosts(params);
-    console.log('Posts response:', response);
     
     // Handle both array and paginated response
     if (Array.isArray(response)) {
       posts.value = response;
       totalItems.value = response.length;
-    } else if (response && 'data' in response) {
-      posts.value = response.data || [];
-      totalItems.value = response.total || 0;
-      currentPage.value = response.current_page || 1;
-      perPage.value = response.per_page || 10;
+    } else if (response && typeof response === 'object') {
+      if ('data' in response) {
+        posts.value = Array.isArray(response.data) ? response.data : [];
+        totalItems.value = typeof response.total === 'number' ? response.total : 0;
+        currentPage.value = typeof response.current_page === 'number' ? response.current_page : 1;
+        perPage.value = typeof response.per_page === 'number' ? response.per_page : 10;
+      } else if (Object.keys(response).length > 0) {
+        // Handle case where response is an object but not in expected paginated format
+        posts.value = [response];
+        totalItems.value = 1;
+      } else {
+        posts.value = [];
+        totalItems.value = 0;
+      }
     } else {
       console.error('Unexpected response format:', response);
       posts.value = [];

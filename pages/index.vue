@@ -72,19 +72,15 @@ import { ref, onMounted } from 'vue';
 import { useBlogStore } from '~/stores/blog';
 import type { Post } from '~/stores/blog';
 
-// Importaciones de Nuxt
+// Initialize Nuxt composables
 const config = useRuntimeConfig();
 const route = useRoute();
 
 // Initialize store and state
 const blogStore = useBlogStore();
-const recentPosts = ref<Array<any>>([]);
+const recentPosts = ref<Post[]>([]);
 const loading = ref<boolean>(true);
 const error = ref<string | null>(null);
-
-// Configuración del tenant
-const config = useRuntimeConfig();
-const route = useRoute();
 
 // Format date helper
 const formatDate = (dateString: string) => {
@@ -98,20 +94,23 @@ const formatDate = (dateString: string) => {
 
 // Fetch posts when component is mounted
 onMounted(async () => {
+  // Only run on client-side
+  if (!process.client) return;
+  
   try {
     loading.value = true;
     error.value = null;
     
     console.log('Iniciando carga de posts...');
     
-    // Determinar el tenant basado en el hostname
-    const hostname = process.client ? window.location.hostname : '';
+    // Determine tenant based on hostname (client-side only)
+    const hostname = window?.location?.hostname || '';
     const subdomain = hostname.split('.')[0];
     const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
       ? 'taita' 
       : subdomain;
     
-    // Configurar el tenant
+    // Configure tenant
     blogStore.setTenant(tenant);
     
     // Fetch recent posts
@@ -125,7 +124,7 @@ onMounted(async () => {
     
     console.log('Respuesta de la API:', response);
     
-    // Manejar tanto la respuesta directa como la paginada
+    // Handle both direct and paginated responses
     const posts = Array.isArray(response) ? response : (response?.data || []);
     recentPosts.value = posts;
     

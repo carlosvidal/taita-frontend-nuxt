@@ -3,8 +3,27 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <ClientOnly>
+      <!-- Client-side only components -->
+    </ClientOnly>
   </div>
 </template>
+
+<script setup>
+import { onMounted } from 'vue';
+import { useBlogStore } from '~/stores/blog';
+
+// Initialize store
+const blogStore = useBlogStore();
+
+// Handle client-side initialization
+onMounted(() => {
+  if (process.client) {
+    // Any client-side initialization can go here
+    console.log('App mounted on client side');
+  }
+});
+</script>
 
 <style>
 /* Variables CSS para el tema Read */

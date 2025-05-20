@@ -7,14 +7,19 @@ export default defineNuxtConfig({
     
     // Public keys that are exposed to the client
     public: {
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_URL || 'https://taita-api.onrender.com/api',
-      imageBaseUrl: process.env.NUXT_PUBLIC_IMAGE_URL || 'https://taita-api.onrender.com',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://taita-api.onrender.com/api',
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://taita-api.onrender.com/api',
+      imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL || 'https://taita-api.onrender.com',
       siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'Taita Blog',
       tenantDomain: process.env.NUXT_PUBLIC_TENANT_DOMAIN || 'demo.taita.blog',
       
       // Feature flags
       enableAnalytics: process.env.NUXT_PUBLIC_ENABLE_ANALYTICS === 'true',
-      enableMaintenance: process.env.NUXT_PUBLIC_ENABLE_MAINTENANCE === 'true',
+      enableMaintenance: process.env.NUXT_PUBLIC_ENABLE_MAINTENANCE === 'false',
+      
+      // SSR/SSG configuration
+      ssr: true,
+      static: process.env.NUXT_PUBLIC_STATIC === 'true' || false
     }
   },
   
@@ -77,7 +82,10 @@ export default defineNuxtConfig({
     },
   },
 
-  ssr: true,  // Para generar páginas estáticas con datos pre-renderizados
+  // SSR Configuration
+  ssr: true,
+  
+  // Nitro configuration for static site generation
   nitro: {
     preset: 'static'  // Especifica que el build será estático
   },

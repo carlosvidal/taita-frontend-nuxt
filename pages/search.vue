@@ -39,6 +39,12 @@
 import { ref } from 'vue';
 import { useBlogStore } from '~/stores/blog';
 
+// Error message constants
+const ERROR_MESSAGES = {
+  DEFAULT: 'Error al realizar la búsqueda. Por favor, intente de nuevo.',
+  NETWORK: 'Error de conexión. Por favor, verifique su conexión a internet.'
+};
+
 // Initialize store and state
 const blogStore = useBlogStore();
 const searchQuery = ref('');
@@ -48,20 +54,26 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 
 const search = async () => {
+  // Only run on client-side
+  if (!process.client) {
+    results.value = [];
+    return;
+  }
+  
   if (!searchQuery.value.trim()) return;
   
   try {
     loading.value = true;
     error.value = null;
     
-    // Determinar el tenant basado en el hostname
-    const hostname = process.client ? window.location.hostname : '';
+    // Determine tenant based on hostname (client-side only)
+    const hostname = window?.location?.hostname || '';
     const subdomain = hostname.split('.')[0];
     const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
       ? 'taita' 
       : subdomain;
     
-    // Configurar el tenant
+    // Configure tenant
     blogStore.setTenant(tenant);
     
     console.log('Buscando con query:', searchQuery.value);
@@ -70,21 +82,46 @@ const search = async () => {
       status: 'published'
     });
     
-    console.log('Resultados de búsqueda:', response);
-    results.value = Array.isArray(response) ? response : [];
+    // Handle different response formats
+    if (Array.isArray(response)) {
+      results.value = response;
+    } else if (response && typeof response === 'object' && 'data' in response) {
+      results.value = Array.isArray(response.data) ? response.data : [];
+    } else {
+      results.value = [];
+    }
+    
     searchPerformed.value = true;
     
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error al buscar:', err);
-    if (err.response) {
-      console.error('Error details:', {
-        status: err.response.status,
-        data: err.response.data,
-        url: err.response.config?.url
-      });
-      error.value = `Error al buscar: ${err.response.status} ${err.response.statusText}`;
+    const errorMessage = 'Error al realizar la búsqueda. Por favor, intente de nuevo.';
+    
+    console.error('Error al buscar:', err);
+    
+    // Handle different types of errors
+    if (err && typeof err === 'object') {
+      // Handle Axios error with response
+      if ('response' in err) {
+        const status = err.response?.status;
+        const statusText = err.response?.statusText || '';
+        
+        console.error('Error details:', {
+          status,
+          data: err.response?.data,
+          url: err.response?.config?.url
+        });
+        
+        error.value = status 
+          ? `Error al buscar: ${status} ${statusText}`.trim()
+          : ERROR_MESSAGES.DEFAULT;
+      } 
+      // Handle network errors
+      else if ('request' in err) {
+        error.value = ERROR_MESSAGES.NETWORK;
+      }
     } else {
-      error.value = 'Error al realizar la búsqueda. Por favor, intente de nuevo.';
+      error.value = errorMessage;
     }
     results.value = [];
   } finally {
