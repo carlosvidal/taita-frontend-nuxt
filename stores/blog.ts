@@ -58,9 +58,13 @@ interface PaginatedResponse<T> {
   total: number;
 }
 
+// Get Nuxt app instance and config at the module level
+const nuxtApp = process.client ? useNuxtApp() : null;
+
 export const useBlogStore = defineStore('blog', () => {
-  const config = useRuntimeConfig();
-  const { $api } = useNuxtApp();
+  // Get runtime config safely
+  const config = process.client ? useRuntimeConfig() : { public: { apiUrl: '', imageUrl: '' } };
+  const { $api } = nuxtApp || {};
   const authStore = useAuthStore();
   const router = useRouter();
 
@@ -73,8 +77,8 @@ export const useBlogStore = defineStore('blog', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const currentTenant = ref('taita');
-  const apiBaseUrl = computed(() => config.public.apiUrl);
-  const imageBaseUrl = computed(() => config.public.imageUrl);
+  const apiBaseUrl = ref(process.client ? config.public.apiUrl : '');
+  const imageBaseUrl = ref(process.client ? config.public.imageUrl : '');
 
   // Getters
   const recentPosts = computed(() => {
@@ -237,9 +241,12 @@ export const useBlogStore = defineStore('blog', () => {
   // Actions
   const setTenant = (tenant: string) => {
     currentTenant.value = tenant;
-    // Actualizar la URL base de la API según el tenant
-    apiBaseUrl.value = `${config.public.apiBase}/${tenant}`;
-    console.log(`Tenant actualizado a: ${tenant}`);
+    // Update API base URL based on tenant
+    if (process.client) {
+      const config = useRuntimeConfig();
+      apiBaseUrl.value = `${config.public.apiBase || ''}/${tenant}`;
+      console.log(`Tenant actualizado a: ${tenant}`, { apiBaseUrl: apiBaseUrl.value });
+    }
   };
 
   // Return the store
