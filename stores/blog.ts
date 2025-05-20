@@ -184,17 +184,24 @@ export const useBlogStore = defineStore('blog', () => {
       
       // Add all parameters to the query
       Object.entries(defaultParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && value !== '') {
           query.append(key, value.toString());
         }
       });
       
-      // Add tenant to query params if available
-      const tenantToUse = currentTenant.value || 'taita'; // Default to 'taita' if no tenant is set
-      query.append('tenant', tenantToUse);
+      // Get the current hostname to determine the tenant
+      const hostname = process.client ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0];
+      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+        ? 'taita' 
+        : subdomain;
+      
+      // Add tenant to headers instead of query params
+      headers['X-Tenant'] = tenant;
       
       const url = `${apiBaseUrl.value}/posts?${query.toString()}`;
       console.log('Solicitando posts desde:', url);
+      console.log('Usando tenant:', tenant);
       
       // For public endpoints, don't include credentials to avoid CORS issues
       const response = await $fetch<{ data: Post[] }>(url, {
@@ -229,23 +236,34 @@ export const useBlogStore = defineStore('blog', () => {
     error.value = null;
     
     try {
-      const query = new URLSearchParams();
+      const query = new URLSearchParams({
+        include: 'category,tags,author',
+      });
       
-      // Agregar el tenant actual si está disponible
-      if (currentTenant.value) {
-        query.append('tenant', currentTenant.value);
-      }
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
       
-      const response = await $fetch<{ data: Post }>(
-        `${apiBaseUrl}/posts/${slug}?${query.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // Get the current hostname to determine the tenant
+      const hostname = process.client ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0];
+      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+        ? 'taita' 
+        : subdomain;
+      
+      // Add tenant to headers
+      headers['X-Tenant'] = tenant;
+      
+      const url = `${apiBaseUrl.value}/posts/${slug}?${query.toString()}`;
+      console.log('Solicitando post desde:', url);
+      console.log('Usando tenant:', tenant);
+      
+      const response = await $fetch<{ data: Post }>(url, {
+        method: 'GET',
+        headers,
+        credentials: 'omit',
+      });
       
       currentPost.value = response.data;
       return response.data;
@@ -263,11 +281,37 @@ export const useBlogStore = defineStore('blog', () => {
     error.value = null;
     
     try {
-      // Usamos el plugin HTTP personalizado que ya maneja el tenant
-      const response = await $fetch<{ data: Category[] }>('/categories', {
+      const query = new URLSearchParams();
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+      
+      // Add params to query
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          query.append(key, value.toString());
+        }
+      });
+      
+      // Get the current hostname to determine the tenant
+      const hostname = process.client ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0];
+      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+        ? 'taita' 
+        : subdomain;
+      
+      // Add tenant to headers
+      headers['X-Tenant'] = tenant;
+      
+      const url = `${apiBaseUrl.value}/categories?${query.toString()}`;
+      console.log('Solicitando categorías desde:', url);
+      console.log('Usando tenant:', tenant);
+      
+      const response = await $fetch<{ data: Category[] }>(url, {
         method: 'GET',
-        params,
-        credentials: 'include'
+        headers,
+        credentials: 'omit',
       });
       
       console.log('Respuesta de categorías:', response);
@@ -287,23 +331,34 @@ export const useBlogStore = defineStore('blog', () => {
     error.value = null;
     
     try {
-      const query = new URLSearchParams();
+      const query = new URLSearchParams({
+        include: 'posts',
+      });
       
-      // Agregar el tenant actual si está disponible
-      if (currentTenant.value) {
-        query.append('tenant', currentTenant.value);
-      }
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
       
-      const response = await $fetch<{ data: Category }>(
-        `${apiBaseUrl}/categories/${slug}?${query.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // Get the current hostname to determine the tenant
+      const hostname = process.client ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0];
+      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+        ? 'taita' 
+        : subdomain;
+      
+      // Add tenant to headers
+      headers['X-Tenant'] = tenant;
+      
+      const url = `${apiBaseUrl.value}/categories/${slug}?${query.toString()}`;
+      console.log('Solicitando categoría desde:', url);
+      console.log('Usando tenant:', tenant);
+      
+      const response = await $fetch<{ data: Category }>(url, {
+        method: 'GET',
+        headers,
+        credentials: 'omit',
+      });
       
       // Actualizar la categoría en la lista de categorías
       const index = categories.value.findIndex(cat => cat.id === response.data.id);
@@ -328,16 +383,45 @@ export const useBlogStore = defineStore('blog', () => {
     error.value = null;
     
     try {
-      // Usamos el plugin HTTP personalizado que ya maneja el tenant
-      const response = await $fetch<{ data: Tag[] }>('/tags', {
+      const query = new URLSearchParams();
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+      
+      // Add params to query
+      const queryParams = {
+        ...params,
+        page: params.page || 1,
+        per_page: params.per_page || 10,
+        sort: params.sort || 'newest',
+        include: 'posts_count'
+      };
+      
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          query.append(key, value.toString());
+        }
+      });
+      
+      // Get the current hostname to determine the tenant
+      const hostname = process.client ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0];
+      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+        ? 'taita' 
+        : subdomain;
+      
+      // Add tenant to headers
+      headers['X-Tenant'] = tenant;
+      
+      const url = `${apiBaseUrl.value}/tags?${query.toString()}`;
+      console.log('Solicitando etiquetas desde:', url);
+      console.log('Usando tenant:', tenant);
+      
+      const response = await $fetch<{ data: Tag[] }>(url, {
         method: 'GET',
-        params: {
-          ...params,
-          page: params.page || 1,
-          per_page: params.per_page || 10,
-          sort: params.sort || 'newest'
-        },
-        credentials: 'include'
+        headers,
+        credentials: 'omit',
       });
       
       console.log('Respuesta de etiquetas:', response);
@@ -371,18 +455,24 @@ export const useBlogStore = defineStore('blog', () => {
       
       // Add query parameters
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && value !== '') {
           query.append(key, value.toString());
         }
       });
       
-      // Add tenant to query params instead of headers
-      if (currentTenant.value) {
-        query.append('tenant', currentTenant.value);
-      }
+      // Get the current hostname to determine the tenant
+      const hostname = process.client ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0];
+      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+        ? 'taita' 
+        : subdomain;
+      
+      // Add tenant to headers
+      headers['X-Tenant'] = tenant;
       
       const url = `${apiBaseUrl.value}/tags/${tagSlug}/posts?${query.toString()}`;
       console.log('Fetching posts by tag from:', url);
+      console.log('Using tenant:', tenant);
       
       const response = await $fetch<{ data: Post[] }>(url, {
         method: 'GET',
@@ -420,12 +510,6 @@ export const useBlogStore = defineStore('blog', () => {
         'Content-Type': 'application/json',
       };
       
-      // Add tenant header if available
-      const subdomain = process.client ? window.location.hostname.split('.')[0] : '';
-      if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
-        headers['X-Tenant'] = subdomain;
-      }
-      
       // Add authentication token if available
       const authStore = useAuthStore();
       if (authStore.token) {
@@ -434,15 +518,22 @@ export const useBlogStore = defineStore('blog', () => {
       
       // Add query parameters
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && value !== '') {
           query.append(key, value.toString());
         }
       });
       
-      // Add tenant to query params
-      if (currentTenant.value) {
-        query.append('tenant', currentTenant.value);
-      }
+      // Get the current hostname to determine the tenant
+      const hostname = process.client ? window.location.hostname : '';
+      const subdomain = hostname.split('.')[0];
+      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
+        ? 'taita' 
+        : subdomain;
+      
+      // Add tenant to headers
+      headers['X-Tenant'] = tenant;
+      
+      console.log('Using tenant:', tenant);
       
       const url = `${apiBaseUrl.value}/categories/${categorySlug}/posts?${query.toString()}`;
       console.log('Fetching posts by category from:', url);
