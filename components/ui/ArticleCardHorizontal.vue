@@ -3,7 +3,7 @@
     <div class="md:flex">
       <!-- Image -->
       <div class="md:flex-shrink-0 md:w-48 h-48 md:h-auto">
-        <NuxtLink :to="`/post/${post.slug}`" class="block h-full">
+        <NuxtLink :to="`/blog/${post.slug}`" class="block h-full">
           <img 
             v-if="post.featured_image"
             :src="getImageUrl(post.featured_image)" 

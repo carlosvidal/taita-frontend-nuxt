@@ -448,18 +448,11 @@ export const useBlogStore = defineStore('blog', () => {
     
     try {
       const query = new URLSearchParams();
-      const headers: Record<string, string> = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      };
       
       // Add params to query
       const queryParams = {
         ...params,
-        page: params.page || 1,
-        per_page: params.per_page || 10,
-        sort: params.sort || 'newest',
-        include: 'posts_count'
+        subdomain: currentTenant.value,
       };
       
       Object.entries(queryParams).forEach(([key, value]) => {
@@ -468,68 +461,39 @@ export const useBlogStore = defineStore('blog', () => {
         }
       });
       
-      // Get the current hostname to determine the tenant
-      const hostname = process.client ? window.location.hostname : '';
-      const subdomain = hostname.split('.')[0];
-      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
-        ? 'taita' 
-        : subdomain;
-      
-      // Add subdomain as a query parameter
-      query.append('subdomain', tenant);
-      
       const url = `${apiBaseUrl.value}/tags/public?${query.toString()}`;
       console.log('Solicitando etiquetas desde:', url);
-      console.log('Usando tenant:', tenant);
       
-      const response = await $fetch<Tag[] | { data: Tag[] }>(url, {
-        method: 'GET',
-        headers,
-        credentials: 'omit',
-      });
+      const response = await $fetch<{ data: Tag[] }>(url);
       
-      console.log('Respuesta de etiquetas:', response);
+      // Formatear la respuesta
+      const tagsData = response.data || [];
       
-      let tagsData: Tag[] = [];
+      // Actualizar el store
+      tags.value = tagsData;
+
+      return {
+        data: tagsData,
+        total: tagsData.length,
+        current_page: 1,
+        last_page: 1,
+        per_page: tagsData.length
+      };
+    } catch (err: any) {
+      console.error('Error fetching tags:', err);
+      error.value = 'No se pudieron cargar las etiquetas';
       
-      // Handle both array and paginated responses
-      if (Array.isArray(response)) {
-        tagsData = response;
-        tags.value = response;
-        return {
-          data: response,
-          total: response.length,
-          current_page: 1,
-          last_page: 1,
-          per_page: response.length,
-        };
-      } else if (response && 'data' in response) {
-        tagsData = response.data || [];
-        tags.value = tagsData;
-        return {
-          data: tagsData,
-          total: response.total || 0,
-          current_page: response.current_page || 1,
-          last_page: response.last_page || 1,
-          per_page: response.per_page || 10,
-        };
-      }
-      
+      // En caso de error, retornar un array vacío
       return {
         data: [],
         total: 0,
         current_page: 1,
         last_page: 1,
-        per_page: 10,
+        per_page: 10
       };
-    } catch (err: any) {
-      console.error('Error fetching tags:', err);
-      error.value = err.message || 'Error al cargar las etiquetas';
-      return [];
     } finally {
       loading.value = false;
     }
-  };
 
   const fetchPostsByTag = async (tagSlug: string, params: Record<string, any> = {}) => {
     loading.value = true;
@@ -537,16 +501,6 @@ export const useBlogStore = defineStore('blog', () => {
     
     try {
       const query = new URLSearchParams();
-      const headers: Record<string, string> = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      };
-      
-      // Add authentication token if available
-      const authStore = useAuthStore();
-      if (authStore.token) {
-        headers['Authorization'] = `Bearer ${authStore.token}`;
-      }
       
       // Add query parameters
       Object.entries(params).forEach(([key, value]) => {
@@ -565,30 +519,43 @@ export const useBlogStore = defineStore('blog', () => {
       // Add subdomain as a query parameter
       query.append('subdomain', tenant);
       
-      const url = `${apiBaseUrl.value}/tags/public/${tagSlug}?${query.toString()}`;
+      const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?${query.toString()}`;
       console.log('Fetching posts by tag from:', url);
-      console.log('Using tenant:', tenant);
       
-      const response = await $fetch<{ data: Post[] }>(url, {
-        method: 'GET',
-        headers,
-        credentials: 'include',
-      });
+      const response = await $fetch<{ 
+        data: {
+          posts: Post[];
+          pagination: {
+            total: number;
+            current_page: number;
+            last_page: number;
+            per_page: number;
+          };
+        };
+      }>(url);
       
-      return response.data || [];
+      // Actualizar el store con los posts
+      posts.value = response.data.posts || [];
+      
+      return {
+        data: response.data.posts || [],
+        total: response.data.pagination?.total || 0,
+        current_page: response.data.pagination?.current_page || 1,
+        last_page: response.data.pagination?.last_page || 1,
+        per_page: response.data.pagination?.per_page || 10,
+      };
     } catch (err: any) {
       console.error('Error fetching posts by tag:', err);
-      error.value = err.message || 'Error al cargar las publicaciones por etiqueta';
+      error.value = 'No se pudieron cargar las publicaciones de la etiqueta';
       
-      // Handle 401 Unauthorized
-      if (err.response?.status === 401) {
-        const authStore = useAuthStore();
-        await authStore.logout();
-        const router = useRouter();
-        await router.push('/login');
-      }
-      
-      return [];
+      // En caso de error, retornar un objeto vacío con la estructura esperada
+      return {
+        data: [],
+        total: 0,
+        current_page: 1,
+        last_page: 1,
+        per_page: 10
+      };
     } finally {
       loading.value = false;
     }

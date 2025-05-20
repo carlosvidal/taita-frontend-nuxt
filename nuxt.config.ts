@@ -37,9 +37,44 @@ export default defineNuxtConfig({
           href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
         },
       ],
+      script: [
+        {
+          innerHTML: `
+            // Fix for back button in SPA mode
+            if (window.history.scrollRestoration) {
+              window.history.scrollRestoration = 'manual';
+            }
+          `,
+          type: 'text/javascript',
+          body: true,
+        },
+      ],
     },
-    pageTransition: { name: 'page', mode: 'out-in' },
-    layoutTransition: { name: 'layout', mode: 'out-in' },
+    pageTransition: { 
+      name: 'page', 
+      mode: 'out-in',
+      onBeforeEnter: () => {
+        // Scroll to top on page change
+        window.scrollTo(0, 0);
+      }
+    },
+    layoutTransition: { 
+      name: 'layout', 
+      mode: 'out-in' 
+    },
+  },
+  
+  // Router configuration
+  router: {
+    options: {
+      scrollBehavior(to, from, savedPosition) {
+        if (savedPosition) {
+          return savedPosition;
+        } else {
+          return { top: 0, behavior: 'smooth' };
+        }
+      },
+    },
   },
 
   ssr: true,  // Para generar páginas estáticas con datos pre-renderizados

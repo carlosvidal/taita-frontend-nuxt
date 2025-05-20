@@ -1,6 +1,6 @@
 <template>
   <article class="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-white dark:bg-gray-800 h-full">
-    <NuxtLink :to="`/post/${post.slug}`" class="block flex-1 flex flex-col">
+    <NuxtLink :to="`/blog/${post.slug}`" class="block flex-1 flex flex-col">
       <!-- Featured Image -->
       <div class="h-48 w-full overflow-hidden">
         <img 
