@@ -170,25 +170,71 @@ export const useBlogStore = defineStore('blog', () => {
 
   // Fetch posts with pagination and filters
   const fetchPosts = async (params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
-    // Skip API calls during SSR for static generation
-    if (process.server) {
+    // Skip API calls during static generation
+    if (process.server && process.env.NODE_ENV === 'production') {
       if (process.dev) {
-        console.log('[BlogStore] Skipping fetchPosts during SSR/SSG');
+        console.log('[BlogStore] Skipping fetchPosts during SSG');
       }
+      // Return mock data that matches the expected structure
       return {
-        data: [],
+        data: [{
+          id: 1,
+          title: 'Bienvenido al Blog',
+          slug: 'bienvenido-al-blog',
+          excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
+          content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
+          featured_image: '/images/placeholder.jpg',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          published_at: new Date().toISOString(),
+          author: {
+            id: 1,
+            name: 'Admin',
+            email: 'admin@example.com'
+          },
+          categories: [{
+            id: 1,
+            name: 'General',
+            slug: 'general'
+          }],
+          tags: []
+        }],
         current_page: 1,
         last_page: 1,
         per_page: params.perPage || 10,
-        total: 0,
-        from: 0,
-        to: 0,
-        path: '',
-        first_page_url: '',
-        last_page_url: '',
+        total: 1,
+        from: 1,
+        to: 1,
+        path: '/blog',
+        first_page_url: '/blog?page=1',
+        last_page_url: '/blog?page=1',
         next_page_url: null,
         prev_page_url: null
-      } as PaginatedResponse<Post>;
+      } as unknown as PaginatedResponse<Post>;
+    }
+    
+    // In development or client-side, make the actual API call
+    if (process.server) {
+      try {
+        // Use a simple fetch during SSR to avoid complex dependencies
+        const response = await $fetch(`${apiBaseUrl.value}/posts/public`, {
+          params: {
+            ...params,
+            subdomain: currentTenant.value
+          }
+        });
+        return response as PaginatedResponse<Post>;
+      } catch (error) {
+        console.error('[BlogStore] Error fetching posts during SSR:', error);
+        // Return empty data on error during SSR
+        return {
+          data: [],
+          current_page: 1,
+          last_page: 1,
+          per_page: params.perPage || 10,
+          total: 0
+        } as PaginatedResponse<Post>;
+      }
     }
 
     loading.value = true;
@@ -272,12 +318,13 @@ export const useBlogStore = defineStore('blog', () => {
         }
       });
       
-      // Get the current hostname to determine the tenant
+      const config = useRuntimeConfig();
+      const defaultTenant = config.public.defaultTenant || 'demo';
       const hostname = process.client ? window.location.hostname : '';
-      const subdomain = hostname.split('.')[0];
-      const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
-        ? 'taita' 
-        : subdomain;
+      let tenant = hostname.split('.')[0];
+      if ((process.server && !hostname) || ['localhost', '127.0.0.1', 'www', ''].includes(tenant)) {
+        tenant = defaultTenant;
+      }
       
       // Add subdomain as a query parameter
       query.append('subdomain', tenant);

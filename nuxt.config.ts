@@ -1,41 +1,72 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  // Enable SSR for better compatibility
-  ssr: true,
+  // Disable SSR for SPA mode
+  ssr: false,
   
-  // Use Vite as the default builder
-  builder: 'vite',
-  
-  // Target server-side rendering
-  target: 'server',
+  // Target static site generation
+  target: 'static',
   
   // Disable source maps in production for better performance
   sourcemap: process.env.NODE_ENV !== 'production',
   
-  // Configure Nitro for server-side rendering
+  // Configure Nitro for static site generation
   nitro: {
-    // Disable prerendering completely
-    prerender: {
-      crawlLinks: false,
-      routes: [],
-      ignore: ['/*']
-    },
-    // Disable sourcemaps in production
-    sourceMap: process.env.NODE_ENV !== 'production',
+    // Completely disable Nitro server
+    dev: false,
+    serveStatic: false,
+    // Disable all server features
+    noPublicDir: true,
+    // Disable API routes
+    api: false,
+    // Disable server middleware
+    middleware: false,
+    // Disable server routes
+    routes: {}
   },
   
-  // Add a hook to handle build process
+  // Disable features that require server-side rendering
+  features: {
+    // Disable server-side rendering features
+    server: false,
+    // Disable server routes
+    serverRoutes: false,
+    // Disable server middleware
+    serverMiddleware: false,
+    // Disable API routes
+    api: false
+  },
+  
+  // Disable modules that might cause issues with SPA
+  modules: [],
+  
+  // Disable auto-imports that might cause issues
+  imports: {
+    autoImport: false
+  },
+  
+  // Disable server-side rendering features
+  experimental: {
+    payloadExtraction: false,
+    renderJsonPayloads: false,
+    sharedPrerenderData: false
+  },
+  
+  // Add hooks for build process
   hooks: {
     'nitro:config': (nitroConfig) => {
-      // Ensure prerendering is disabled
+      // Ensure prerendering is disabled for all routes
       if (nitroConfig.prerender) {
         nitroConfig.prerender.routes = [];
         nitroConfig.prerender.ignore = ['/*'];
         nitroConfig.prerender.crawlLinks = false;
       }
+      
+      // Configure static file serving
+      nitroConfig.static = true;
+      nitroConfig.serveStatic = true;
     },
     'build:before': () => {
-      console.log('Building in SSR mode (no static generation)');
+      console.log('Building in SPA mode (no SSR)');
     }
   },
   

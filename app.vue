@@ -42,9 +42,17 @@ const initialized = ref(false);
 // Detect tenant from hostname or config
 const detectTenant = () => {
   try {
-    // Return default tenant during SSR
-    if (process.server) return config.public.tenant || 'taita';
+    // Return default tenant during SSR/SSG
+    if (process.server) {
+      // During static generation, use the environment variable directly
+      if (process.env.NODE_ENV === 'production') {
+        return process.env.NUXT_PUBLIC_TENANT || 'taita';
+      }
+      // In development, allow dynamic tenant detection
+      return process.env.NUXT_PUBLIC_TENANT || 'taita';
+    }
     
+    // Client-side tenant detection
     // Check for tenant in URL query parameter (for testing)
     const urlParams = new URLSearchParams(window.location.search);
     const urlTenant = urlParams.get('tenant');
