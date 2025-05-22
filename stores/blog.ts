@@ -356,16 +356,14 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         console.log(`[BlogStore] Fetching posts from: ${apiBaseUrl.value}/posts?${query.toString()}`);
       }
 
-      // Use Nuxt's $fetch utility
+      query.append('tenant', currentTenant.value || 'demo');
       const response = await $fetch<PaginatedResponse<Post>>(
-        `${apiBaseUrl.value}/public/posts?${query.toString()}`,
+        `${apiBaseUrl.value}/posts/public?${query.toString()}`,
         {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-Taita-Subdomain': currentTenant.value || 'demo',
           },
-          // Add timeout for the request
           timeout: 10000,
         }
       );
