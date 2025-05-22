@@ -532,11 +532,10 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get categories
-      const response = await $fetch<Category[]>(`${apiBaseUrl.value}/public/categories`, {
+      const response = await $fetch<Category[]>(`${apiBaseUrl.value}/categories/public?tenant=${currentTenant.value || 'demo'}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
@@ -577,11 +576,10 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get the category
-      const response = await $fetch<Category>(`${apiBaseUrl.value}/public/categories/${slug}`, {
+      const response = await $fetch<Category>(`${apiBaseUrl.value}/categories/public/${slug}?tenant=${currentTenant.value || 'demo'}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
@@ -793,11 +791,11 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         }
       });
       
-      const response = await $fetch<PaginatedResponse<Post>>(`${apiBaseUrl.value}/public/categories/${categorySlug}/posts?${query.toString()}`, {
+      const url = `${apiBaseUrl.value}/categories/public/${categorySlug}/posts?tenant=${currentTenant.value || 'demo'}&${query.toString()}`;
+      const response = await $fetch<PaginatedResponse<Post>>(url, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
@@ -842,26 +840,11 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
       }
       
       // Add subdomain as a query parameter
-      query.append('subdomain', tenant);
-      
-      const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?${query.toString()}`;
-      console.log('Fetching posts by tag from:', url);
-      
-      const response = await $fetch<{ 
-        data: {
-          posts: Post[];
-          pagination: {
-            total: number;
-            current_page: number;
-            last_page: number;
-            per_page: number;
-          };
-        };
-      }>(url, {
+      const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?tenant=${currentTenant.value || 'demo'}&${query.toString()}`;
+      const response = await $fetch<any>(url, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
