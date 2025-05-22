@@ -489,8 +489,9 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
           'X-Taita-Subdomain': currentTenant.value || 'demo',
         },
         params: {
-          include: 'category,tags,author'
-        }
+          include: 'category,tags,author',
+          tenant: currentTenant.value || 'demo'
+        
       });
       
       // Update currentPost in the store
