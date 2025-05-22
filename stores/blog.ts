@@ -358,7 +358,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
 
       // Use Nuxt's $fetch utility
       const response = await $fetch<PaginatedResponse<Post>>(
-        `${apiBaseUrl.value}/posts?${query.toString()}`,
+        `${apiBaseUrl.value}/public/posts?${query.toString()}`,
         {
           headers: {
             'Accept': 'application/json',
@@ -483,7 +483,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get the post
-      const response = await $fetch<Post>(`${apiBaseUrl.value}/posts/${slug}`, {
+      const response = await $fetch<Post>(`${apiBaseUrl.value}/public/posts/${slug}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -530,7 +530,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get categories
-      const response = await $fetch<Category[]>(`${apiBaseUrl.value}/categories`, {
+      const response = await $fetch<Category[]>(`${apiBaseUrl.value}/public/categories`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -574,7 +574,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get the category
-      const response = await $fetch<Category>(`${apiBaseUrl.value}/categories/${slug}`, {
+      const response = await $fetch<Category>(`${apiBaseUrl.value}/public/categories/${slug}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -621,7 +621,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get tags
-      const response = await $fetch<Tag[]>(`${apiBaseUrl.value}/tags`, {
+      const response = await $fetch<Tag[]>(`${apiBaseUrl.value}/public/tags`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -671,7 +671,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get the tag
-      const response = await $fetch<Tag>(`${apiBaseUrl.value}/tags/${slug}`, {
+      const response = await $fetch<Tag>(`${apiBaseUrl.value}/public/tags/${slug}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -786,150 +786,6 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           query.append(key, value.toString());
-        }
-      });
-      
-      // Make API request
-      const response = await $fetch<PaginatedResponse<Post>>(
-        `${apiBaseUrl.value}/categories/${categorySlug}/posts?${query.toString()}`,
-        {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-      
-      return response;
-    } catch (err: any) {
-      console.error(`[BlogStore] Error fetching posts for category ${categorySlug}:`, err);
-      error.value = `Error fetching posts: ${err.message || 'Unknown error'}`;
-      
-      return {
-        data: [],
-        current_page: 1,
-        last_page: 1,
-        per_page: 10,
-        total: 0
-      };
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  // Search posts
-  const searchPosts = async (query: string, params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
-    // Use static data in static mode
-    if (isStaticMode) {
-      // Mock posts data
-      const mockPosts = [
-        {
-          id: 1,
-          title: 'Bienvenido al Blog',
-          slug: 'bienvenido-al-blog',
-          excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
-          content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
-          featured_image: '/images/placeholder.jpg',
-          featured: true,
-          published_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          reading_time: 2,
-          author_id: 1,
-          category_id: 1,
-          author: {
-            id: 1,
-            name: 'Admin',
-            email: 'admin@example.com',
-            bio: 'Administrador del blog',
-            avatar: '/images/placeholder-avatar.jpg'
-          },
-          category: {
-            id: 1,
-            name: 'General',
-            slug: 'general',
-            description: 'Categoría general'
-          },
-          tags: [
-            {
-              id: 1,
-              name: 'Blog',
-              slug: 'blog',
-              description: 'Artículos de blog'
-            }
-          ]
-        },
-        {
-          id: 2,
-          title: 'Cómo utilizar Nuxt 3',
-          slug: 'como-utilizar-nuxt-3',
-          excerpt: 'Aprende a utilizar Nuxt 3 para crear sitios web estáticos.',
-          content: '<p>Nuxt 3 es un framework potente para crear sitios web estáticos y aplicaciones web.</p>',
-          featured_image: '/images/placeholder.jpg',
-          featured: false,
-          published_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-          updated_at: new Date(Date.now() - 86400000).toISOString(),
-          reading_time: 5,
-          author_id: 1,
-          category_id: 2,
-          author: {
-            id: 1,
-            name: 'Admin',
-            email: 'admin@example.com',
-            bio: 'Administrador del blog',
-            avatar: '/images/placeholder-avatar.jpg'
-          },
-          category: {
-            id: 2,
-            name: 'Tecnología',
-            slug: 'tecnologia',
-            description: 'Artículos sobre tecnología'
-          },
-          tags: [
-            {
-              id: 2,
-              name: 'Nuxt',
-              slug: 'nuxt',
-              description: 'Artículos sobre Nuxt'
-            }
-          ]
-        }
-      ];
-      
-      // Simple search across title, excerpt, and content
-      const searchTerm = query.toLowerCase();
-      const filteredPosts = mockPosts.filter(post => 
-        post.title.toLowerCase().includes(searchTerm) ||
-        post.excerpt?.toLowerCase().includes(searchTerm) ||
-        post.content?.toLowerCase().includes(searchTerm)
-      );
-      
-      return {
-        data: filteredPosts,
-        current_page: 1,
-        last_page: 1,
-        per_page: filteredPosts.length,
-        total: filteredPosts.length
-      };
-    }
-    
-    loading.value = true;
-    error.value = null;
-    
-    try {
-      const searchParams = new URLSearchParams({
-        q: query,
-        ...params
-      });
-      
-      // Make API request
-      const response = await $fetch<PaginatedResponse<Post>>(
-        `${apiBaseUrl.value}/search?${searchParams.toString()}`,
-        {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          }
-        }
       );
       
       return response;
