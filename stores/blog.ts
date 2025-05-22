@@ -536,6 +536,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
@@ -580,6 +581,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
@@ -627,6 +629,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
@@ -677,6 +680,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
@@ -791,6 +795,14 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         }
       });
       
+      const response = await $fetch<PaginatedResponse<Post>>(`${apiBaseUrl.value}/public/categories/${categorySlug}/posts?${query.toString()}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Taita-Subdomain': currentTenant.value || 'demo',
+        }
+      });
+      
       return response;
     } catch (err: any) {
       console.error(`[BlogStore] Error searching posts with query "${query}":`, err);
@@ -847,7 +859,13 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
             per_page: number;
           };
         };
-      }>(url);
+      }>(url, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Taita-Subdomain': currentTenant.value || 'demo',
+        }
+      });
       
       // Update the store with the posts
       posts.value = response.data.posts || [];
