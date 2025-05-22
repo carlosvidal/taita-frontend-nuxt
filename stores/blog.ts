@@ -482,7 +482,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get the post
-      const response = await $fetch<Post>(`${apiBaseUrl.value}/public/posts/${slug}`, {
+      const response = await $fetch<Post>(`${apiBaseUrl.value}/posts/public/${slug}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
