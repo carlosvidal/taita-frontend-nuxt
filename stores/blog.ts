@@ -625,11 +625,10 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get tags
-      const response = await $fetch<Tag[]>(`${apiBaseUrl.value}/public/tags`, {
+      const response = await $fetch<Tag[]>(`${apiBaseUrl.value}/tags/public?tenant=${currentTenant.value || 'demo'}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
@@ -676,11 +675,10 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get the tag
-      const response = await $fetch<Tag>(`${apiBaseUrl.value}/public/tags/${slug}`, {
+      const response = await $fetch<Tag>(`${apiBaseUrl.value}/tags/public/${slug}?tenant=${currentTenant.value || 'demo'}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'X-Taita-Subdomain': currentTenant.value || 'demo',
         }
       });
       
