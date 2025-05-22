@@ -874,6 +874,92 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     }
   };
 
+  // Search posts
+  const searchPosts = async (query: string, params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
+    // Use static data in static mode
+    if (isStaticMode) {
+      // Mock posts data
+      const mockPosts = [
+        {
+          id: 1,
+          title: 'Bienvenido al Blog',
+          slug: 'bienvenido-al-blog',
+          excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
+          content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
+          featured_image: '/images/placeholder.jpg',
+          featured: true,
+          published_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          reading_time: 2,
+          author_id: 1,
+          category_id: 1,
+          author: {
+            id: 1,
+            name: 'Admin',
+            email: 'admin@example.com',
+            bio: 'Administrador del blog',
+            avatar: '/images/placeholder-avatar.jpg'
+          },
+          category: {
+            id: 1,
+            name: 'General',
+            slug: 'general',
+            description: 'Categoría general'
+          },
+          tags: [
+            {
+              id: 1,
+              name: 'Blog',
+              slug: 'blog',
+              description: 'Artículos de blog'
+            }
+          ]
+        }
+      ];
+      // Simple search
+      const searchTerm = query.toLowerCase();
+      const filteredPosts = mockPosts.filter(post => 
+        post.title.toLowerCase().includes(searchTerm) ||
+        post.excerpt?.toLowerCase().includes(searchTerm) ||
+        post.content?.toLowerCase().includes(searchTerm)
+      );
+      return {
+        data: filteredPosts,
+        current_page: 1,
+        last_page: 1,
+        per_page: filteredPosts.length,
+        total: filteredPosts.length
+      };
+    }
+    loading.value = true;
+    error.value = null;
+    try {
+      const searchParams = new URLSearchParams({ q: query, ...params });
+      const response = await $fetch<PaginatedResponse<Post>>(
+        `${apiBaseUrl.value}/public/search?${searchParams.toString()}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+      return response;
+    } catch (err: any) {
+      console.error(`[BlogStore] Error searching posts with query "${query}":`, err);
+      error.value = `Error searching posts: ${err.message || 'Unknown error'}`;
+      return {
+        data: [],
+        current_page: 1,
+        last_page: 1,
+        per_page: 10,
+        total: 0
+      };
+    } finally {
+      loading.value = false;
+    }
+  };
+
   // Helper to get full image URL
   const getImageUrl = (path?: string): string => {
     if (!path) return '';
