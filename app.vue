@@ -109,27 +109,27 @@ const onPageMounted = () => {
 };
 
 // Error handlers
+// Global error handler (fuera de setupErrorHandling)
+const handleError = (error) => {
+  console.error('Application error:', error);
+  // Aquí puedes agregar lógica de reporte (Sentry, etc)
+};
+
 const setupErrorHandling = () => {
   if (process.server) return;
-  
-  // Global error handler
-  const handleError = (error) => {
-    console.error('Application error:', error);
-    // You can add error reporting here (e.g., Sentry, LogRocket)
-  };
-  
+
   // Unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled promise rejection:', event.reason);
     handleError(event.reason);
   });
-  
+
   // Global errors
   window.addEventListener('error', (event) => {
     console.error('Uncaught error:', event.error || event);
     handleError(event.error || event);
   });
-  
+
   // Vue error handler
   const app = useNuxtApp();
   app.vueApp.config.errorHandler = (err, instance, info) => {

@@ -1,0 +1,18 @@
+import { PiniaPluginContext } from 'pinia';
+
+export function persistedStatePlugin({ store }: PiniaPluginContext) {
+  const key = `pinia-${store.$id}`;
+  // Cargar estado inicial de localStorage
+  const fromStorage = localStorage.getItem(key);
+  if (fromStorage) {
+    store.$patch(JSON.parse(fromStorage));
+  }
+  // Guardar en localStorage en cada cambio
+  store.$subscribe((_mutation, state) => {
+    localStorage.setItem(key, JSON.stringify(state));
+  });
+}
+
+export default defineNuxtPlugin((nuxtApp) => {
+  nuxtApp.$pinia.use(persistedStatePlugin);
+});
