@@ -9,7 +9,7 @@
     
     <!-- Main content -->
     <NuxtLayout>
-      <NuxtPage :key="$route.fullPath" @mounted="onPageMounted" />
+      <NuxtPage :key="$route.fullPath" />
     </NuxtLayout>
     
     <!-- Debug overlay (only in development) -->
