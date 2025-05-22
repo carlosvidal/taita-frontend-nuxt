@@ -1,6 +1,6 @@
-import { PiniaPluginContext } from 'pinia';
+// import { PiniaPluginContext } from 'pinia';
 
-export function persistedStatePlugin({ store }: PiniaPluginContext) {
+export function persistedStatePlugin({ store }: any) {
   const key = `pinia-${store.$id}`;
   // Cargar estado inicial de localStorage
   const fromStorage = localStorage.getItem(key);

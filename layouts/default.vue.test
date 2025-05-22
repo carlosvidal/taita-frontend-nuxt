@@ -1,0 +1,7 @@
+<template>
+    <div>
+      <p>HEADER DEL LAYOUT</p>
+      <slot />
+      <p>FOOTER DEL LAYOUT</p>
+    </div>
+  </template>

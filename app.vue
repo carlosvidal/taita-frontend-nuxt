@@ -9,8 +9,8 @@
     
     <!-- Main content -->
     <NuxtLayout>
-      <NuxtPage :key="$route.fullPath" />
-    </NuxtLayout>
+  <NuxtPage :key="$route.fullPath" />
+</NuxtLayout>
     
     <!-- Debug overlay (only in development) -->
     <ClientOnly>
