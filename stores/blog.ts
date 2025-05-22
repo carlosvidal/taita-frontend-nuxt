@@ -491,7 +491,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         params: {
           include: 'category,tags,author',
           tenant: currentTenant.value || 'demo'
-        
+        }
       });
       
       // Update currentPost in the store
