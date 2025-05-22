@@ -141,6 +141,7 @@ export const useApi = () => {
   // Método para construir URLs de imágenes
   const getImageUrl = (path: string) => {
     if (!path) return '';
+    if (!path) return '';
     return path.startsWith('http') ? path : `${imageBaseUrl}${path}`;
   };
 

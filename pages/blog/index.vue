@@ -321,9 +321,95 @@ const visiblePages = computed(() => {
   return pages;
 });
 
+// Mock data function for static generation
+const mockStaticPosts = () => {
+  return [
+    {
+      id: 1,
+      title: 'Bienvenido al Blog',
+      slug: 'bienvenido-al-blog',
+      excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
+      content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
+      featured_image: '/images/placeholder.jpg',
+      featured: true,
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      reading_time: 2,
+      author_id: 1,
+      category_id: 1,
+      author: {
+        id: 1,
+        name: 'Admin',
+        email: 'admin@example.com',
+        bio: 'Administrador del blog',
+        avatar: '/images/placeholder-avatar.jpg'
+      },
+      category: {
+        id: 1,
+        name: 'General',
+        slug: 'general',
+        description: 'Categoría general'
+      },
+      tags: [
+        {
+          id: 1,
+          name: 'Blog',
+          slug: 'blog',
+          description: 'Artículos de blog'
+        }
+      ]
+    },
+    {
+      id: 2,
+      title: 'Cómo utilizar Nuxt 3',
+      slug: 'como-utilizar-nuxt-3',
+      excerpt: 'Aprende a utilizar Nuxt 3 para crear sitios web estáticos.',
+      content: '<p>Nuxt 3 es un framework potente para crear sitios web estáticos y aplicaciones web.</p>',
+      featured_image: '/images/placeholder.jpg',
+      featured: false,
+      published_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      updated_at: new Date(Date.now() - 86400000).toISOString(),
+      reading_time: 5,
+      author_id: 1,
+      category_id: 2,
+      author: {
+        id: 1,
+        name: 'Admin',
+        email: 'admin@example.com',
+        bio: 'Administrador del blog',
+        avatar: '/images/placeholder-avatar.jpg'
+      },
+      category: {
+        id: 2,
+        name: 'Tecnología',
+        slug: 'tecnologia',
+        description: 'Artículos sobre tecnología'
+      },
+      tags: [
+        {
+          id: 2,
+          name: 'Nuxt',
+          slug: 'nuxt',
+          description: 'Artículos sobre Nuxt'
+        }
+      ]
+    }
+  ];
+};
+
 // Métodos
 const fetchPosts = async () => {
-  // Only run on client-side
+  // Get static mode from plugin
+  const { $isStatic } = useNuxtApp();
+  
+  // For static generation, use mock data
+  if ($isStatic && $isStatic()) {
+    posts.value = mockStaticPosts();
+    loading.value = false;
+    return;
+  }
+  
+  // Only run on client-side for non-static mode
   if (!process.client) {
     posts.value = [];
     return;
@@ -488,11 +574,19 @@ watch([currentPage, searchQuery, sortBy], () => {
 // Lifecycle hooks
 onMounted(async () => {
   parseRouteQuery();
-  await Promise.all([
-    fetchPosts(),
-    fetchCategories(),
-    fetchPopularTags()
-  ]);
+  if (process.client) {
+    await Promise.all([
+      fetchPosts(),
+      fetchCategories(),
+      fetchPopularTags()
+    ]);
+  } else {
+    // Prevenir errores en SSR/SSG
+    posts.value = [];
+    categories.value = [];
+    popularTags.value = [];
+    loading.value = false;
+  }
 });
 
 // Watch for route changes

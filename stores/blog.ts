@@ -59,14 +59,15 @@ interface PaginatedResponse<T> {
   total: number;
 }
 
-// Default values for server-side rendering
+// Default values for server-side rendering and static generation
 const defaultConfig = {
   apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://taita-api.onrender.com/api',
   apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://taita-api.onrender.com/api',
   imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL || 'https://taita-api.onrender.com',
   siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'Taita Blog',
   tenantDomain: process.env.NUXT_PUBLIC_TENANT_DOMAIN || 'taita',
-  tenant: process.env.NUXT_PUBLIC_TENANT || 'taita'
+  tenant: process.env.NUXT_PUBLIC_TENANT || 'taita',
+  isStatic: process.env.NUXT_PUBLIC_STATIC === 'true'
 };
 
 // Helper function to safely access runtime config
@@ -97,10 +98,14 @@ const useSafeConfig = () => {
 };
 
 export const useBlogStore = defineStore('blog', () => {
-  // Initialize Nuxt app and config
-  const nuxtApp = process.client ? useNuxtApp() : null;
-  const authStore = useAuthStore();
+  // Initialize config
   const config = useSafeConfig();
+  let nuxtApp = null;
+  let authStore = null;
+  if (process.client) {
+    nuxtApp = useNuxtApp();
+    authStore = useAuthStore();
+  }
 
   // State
   const posts = ref<Post[]>([]) as Ref<Post[]>;
@@ -156,9 +161,9 @@ export const useBlogStore = defineStore('blog', () => {
     // Only update URLs on client side
     updateUrls();
   } else {
-    // For SSR, set default URLs
-    apiBaseUrl.value = config.apiBase;
-    imageBaseUrl.value = config.imageUrl;
+    // For SSR, set safe defaults (no tenant)
+    apiBaseUrl.value = config.apiBase || '';
+    imageBaseUrl.value = config.imageUrl || '';
   }
 
   // Getters
@@ -170,57 +175,142 @@ export const useBlogStore = defineStore('blog', () => {
 
   // Fetch posts with pagination and filters
   const fetchPosts = async (params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
-    // Skip API calls during static generation
-    if (process.server && process.env.NODE_ENV === 'production') {
+    // Check if we're in static generation mode or SSR production mode
+    const isStaticMode = (process.server && process.env.NODE_ENV === 'production') || config.isStatic;
+    
+    // Provide mock data for static generation
+    if (isStaticMode) {
       if (process.dev) {
-        console.log('[BlogStore] Skipping fetchPosts during SSG');
+        console.log('[BlogStore] Using mock data for static generation');
       }
-      // Return mock data that matches the expected structure
-      return {
-        data: [{
+      
+      // Create consistent mock data for static site generation
+      const mockPosts: Post[] = [
+        {
           id: 1,
           title: 'Bienvenido al Blog',
           slug: 'bienvenido-al-blog',
           excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
           content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
           featured_image: '/images/placeholder.jpg',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          featured: true,
           published_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          reading_time: 2,
+          author_id: 1,
+          category_id: 1,
           author: {
             id: 1,
             name: 'Admin',
-            email: 'admin@example.com'
+            email: 'admin@example.com',
+            bio: 'Administrador del blog',
+            avatar: '/images/placeholder-avatar.jpg'
           },
-          categories: [{
+          category: {
             id: 1,
             name: 'General',
-            slug: 'general'
-          }],
-          tags: []
-        }],
+            slug: 'general',
+            description: 'Categoría general'
+          },
+          tags: [
+            {
+              id: 1,
+              name: 'Blog',
+              slug: 'blog',
+              description: 'Artículos de blog'
+            }
+          ],
+          meta_title: 'Bienvenido al Blog',
+          meta_description: 'Artículo de bienvenida al blog'
+        },
+        {
+          id: 2,
+          title: 'Cómo utilizar Nuxt 3',
+          slug: 'como-utilizar-nuxt-3',
+          excerpt: 'Aprende a utilizar Nuxt 3 para crear sitios web estáticos.',
+          content: '<p>Nuxt 3 es un framework potente para crear sitios web estáticos y aplicaciones web.</p>',
+          featured_image: '/images/placeholder.jpg',
+          featured: false,
+          published_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+          updated_at: new Date(Date.now() - 86400000).toISOString(),
+          reading_time: 5,
+          author_id: 1,
+          category_id: 2,
+          author: {
+            id: 1,
+            name: 'Admin',
+            email: 'admin@example.com',
+            bio: 'Administrador del blog',
+            avatar: '/images/placeholder-avatar.jpg'
+          },
+          category: {
+            id: 2,
+            name: 'Tecnología',
+            slug: 'tecnologia',
+            description: 'Artículos sobre tecnología'
+          },
+          tags: [
+            {
+              id: 2,
+              name: 'Nuxt',
+              slug: 'nuxt',
+              description: 'Artículos sobre Nuxt'
+            },
+            {
+              id: 3,
+              name: 'JavaScript',
+              slug: 'javascript',
+              description: 'Artículos sobre JavaScript'
+            }
+          ],
+          meta_title: 'Cómo utilizar Nuxt 3',
+          meta_description: 'Guía completa para utilizar Nuxt 3'
+        }
+      ];
+      
+      // Filter the mock posts based on parameters if needed
+      let filteredPosts = [...mockPosts];
+      
+      // Apply filtering by category if requested
+      if (params.category_id) {
+        filteredPosts = filteredPosts.filter(post => post.category_id === params.category_id);
+      }
+      
+      // Apply filtering by tag if requested
+      if (params.tag_id) {
+        filteredPosts = filteredPosts.filter(post => 
+          post.tags?.some(tag => tag.id === params.tag_id)
+        );
+      }
+      
+      // Apply filtering by featured status if requested
+      if (params.featured) {
+        filteredPosts = filteredPosts.filter(post => post.featured);
+      }
+      
+      // Apply limiting if requested
+      if (params.limit) {
+        filteredPosts = filteredPosts.slice(0, parseInt(params.limit));
+      }
+      
+      // Return paginated response with mock data
+      return {
+        data: filteredPosts,
         current_page: 1,
         last_page: 1,
-        per_page: params.perPage || 10,
-        total: 1,
-        from: 1,
-        to: 1,
-        path: '/blog',
-        first_page_url: '/blog?page=1',
-        last_page_url: '/blog?page=1',
-        next_page_url: null,
-        prev_page_url: null
-      } as unknown as PaginatedResponse<Post>;
+        per_page: filteredPosts.length,
+        total: filteredPosts.length
+      };
     }
     
-    // In development or client-side, make the actual API call
-    if (process.server) {
+    // For server-side rendering in development
+    if (process.server && !isStaticMode) {
       try {
-        // Use a simple fetch during SSR to avoid complex dependencies
-        const response = await $fetch(`${apiBaseUrl.value}/posts/public`, {
+        // Use a simple fetch during SSR
+        const response = await $fetch(`${apiBaseUrl.value}/posts`, {
           params: {
             ...params,
-            subdomain: currentTenant.value
+            tenant: currentTenant.value
           }
         });
         return response as PaginatedResponse<Post>;
@@ -231,12 +321,13 @@ export const useBlogStore = defineStore('blog', () => {
           data: [],
           current_page: 1,
           last_page: 1,
-          per_page: params.perPage || 10,
+          per_page: params.limit || 10,
           total: 0
         } as PaginatedResponse<Post>;
       }
     }
 
+    // For client-side rendering
     loading.value = true;
     error.value = null;
 
@@ -244,23 +335,29 @@ export const useBlogStore = defineStore('blog', () => {
       const query = new URLSearchParams();
       
       // Add pagination
-      if (params.page) query.append('page', params.page);
-      if (params.perPage) query.append('per_page', params.perPage);
+      if (params.page) query.append('page', params.page.toString());
+      if (params.limit) query.append('limit', params.limit.toString());
+      if (params.per_page) query.append('per_page', params.per_page.toString());
       
       // Add filters
-      if (params.category) query.append('category', params.category);
-      if (params.tag) query.append('tag', params.tag);
-      if (params.search) query.append('search', params.search);
-      if (params.featured) query.append('featured', 'true');
+      if (params.category_id) query.append('category_id', params.category_id.toString());
+      if (params.tag_id) query.append('tag_id', params.tag_id.toString());
+      if (params.search) query.append('search', params.search.toString());
+      if (params.featured) query.append('featured', params.featured.toString());
+      if (params.status) query.append('status', params.status.toString());
+      
+      // Add includes
+      if (params.include) query.append('include', params.include.toString());
       
       // Add sorting
-      if (params.sortBy) query.append('sort_by', params.sortBy);
-      if (params.sortOrder) query.append('sort_order', params.sortOrder);
-
+      if (params.orderBy) query.append('orderBy', params.orderBy.toString());
+      if (params.order) query.append('order', params.order.toString());
+      
       if (process.dev) {
         console.log(`[BlogStore] Fetching posts from: ${apiBaseUrl.value}/posts?${query.toString()}`);
       }
 
+      // Use Nuxt's $fetch utility
       const response = await $fetch<PaginatedResponse<Post>>(
         `${apiBaseUrl.value}/posts?${query.toString()}`,
         {
@@ -270,12 +367,10 @@ export const useBlogStore = defineStore('blog', () => {
           },
           // Add timeout for the request
           timeout: 10000,
-          // Add retry logic
-          retry: 2,
-          retryDelay: 1000,
         }
       );
 
+      // Update store with fetched data
       posts.value = response.data || [];
       currentPage.value = response.current_page || 1;
       totalPages.value = response.last_page || 1;
@@ -373,6 +468,7 @@ export const useBlogStore = defineStore('blog', () => {
 
   // Helper to get full image URL
   const getImageUrl = (path?: string): string => {
+    if (!path) return '';
     if (!path) return '';
     return path.startsWith('http') ? path : `${imageBaseUrl.value}${path}`;
   };

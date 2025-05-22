@@ -112,6 +112,7 @@ const formatDate = (dateString: string) => {
 // Helper to get full image URL
 const getImageUrl = (path: string) => {
   if (!path) return '';
+  if (!path) return '';
   return path.startsWith('http') ? path : `${blogStore.imageBaseUrl}${path}`;
 };
 </script>

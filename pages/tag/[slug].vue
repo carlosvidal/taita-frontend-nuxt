@@ -376,6 +376,7 @@ const parseRouteQuery = () => {
 // Helper para obtener la URL completa de una imagen
 const getImageUrl = (path: string) => {
   if (!path) return '';
+  if (!path) return '';
   return path.startsWith('http') ? path : `${blogStore.imageBaseUrl}${path}`;
 };
 

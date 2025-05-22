@@ -1,74 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  // Disable SSR for SPA mode
+  // Configuración para SPA (Single Page Application)
   ssr: false,
-  
-  // Target static site generation
-  target: 'static',
-  
-  // Disable source maps in production for better performance
   sourcemap: process.env.NODE_ENV !== 'production',
-  
-  // Configure Nitro for static site generation
-  nitro: {
-    // Completely disable Nitro server
-    dev: false,
-    serveStatic: false,
-    // Disable all server features
-    noPublicDir: true,
-    // Disable API routes
-    api: false,
-    // Disable server middleware
-    middleware: false,
-    // Disable server routes
-    routes: {}
-  },
-  
-  // Disable features that require server-side rendering
-  features: {
-    // Disable server-side rendering features
-    server: false,
-    // Disable server routes
-    serverRoutes: false,
-    // Disable server middleware
-    serverMiddleware: false,
-    // Disable API routes
-    api: false
-  },
-  
-  // Disable modules that might cause issues with SPA
-  modules: [],
-  
-  // Disable auto-imports that might cause issues
-  imports: {
-    autoImport: false
-  },
-  
-  // Disable server-side rendering features
-  experimental: {
-    payloadExtraction: false,
-    renderJsonPayloads: false,
-    sharedPrerenderData: false
-  },
-  
-  // Add hooks for build process
-  hooks: {
-    'nitro:config': (nitroConfig) => {
-      // Ensure prerendering is disabled for all routes
-      if (nitroConfig.prerender) {
-        nitroConfig.prerender.routes = [];
-        nitroConfig.prerender.ignore = ['/*'];
-        nitroConfig.prerender.crawlLinks = false;
-      }
-      
-      // Configure static file serving
-      nitroConfig.static = true;
-      nitroConfig.serveStatic = true;
-    },
-    'build:before': () => {
-      console.log('Building in SPA mode (no SSR)');
-    }
-  },
   
   // Build configuration
   build: {
@@ -208,12 +142,19 @@ export default defineNuxtConfig({
     },
   },
 
-  // SSR Configuration
-  ssr: true,
+  // Ya configurado arriba como false (modo SPA)
+  // ssr: false,
   
-  // Nitro configuration for static site generation
+  // Nitro configuration for SPA mode
   nitro: {
-    preset: 'static'  // Especifica que el build será estático
+    preset: 'static', // Usamos preset static para desplegar en Netlify/Vercel
+    // Deshabilitamos prerenderizado ya que estamos en modo SPA
+    static: {
+      prerender: {
+        autoSubfolderIndex: false,
+        ignore: ['**/*'] // Ignorar todo el prerenderizado
+      }
+    }
   },
   
   // Modules

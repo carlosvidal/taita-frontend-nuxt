@@ -159,6 +159,7 @@ const slug = computed(() => route.params.slug as string);
 
 const getImageUrl = (path: string) => {
   if (!path) return '';
+  if (!path) return '';
   if (path.startsWith('http')) return path;
   return `https://taita-api.onrender.com/storage/${path}`;
 };

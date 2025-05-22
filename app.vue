@@ -25,13 +25,11 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, useRuntimeConfig } from '#imports';
-import { useBlogStore } from '~/stores/blog';
-import { useRouter } from 'vue-router';
+let blogStore;
 
 // Runtime config
 const config = useRuntimeConfig();
 const router = useRouter();
-const blogStore = useBlogStore();
 
 // State
 const currentTenant = ref('taita'); // Default tenant
@@ -78,18 +76,20 @@ const detectTenant = () => {
 // Initialize application
 const initializeApp = async () => {
   if (process.server) return;
-  
   try {
-    // Set initial tenant
-    const tenant = detectTenant();
-    currentTenant.value = tenant;
-    blogStore.setTenant(tenant);
-    
+    // Importa y usa el store sólo en cliente
+    if (process.client) {
+      const { useBlogStore } = await import('~/stores/blog');
+      blogStore = useBlogStore();
+      // Set initial tenant
+      const tenant = detectTenant();
+      currentTenant.value = tenant;
+      blogStore.setTenant(tenant);
+    }
     // Mark as initialized
     initialized.value = true;
-    
     if (process.dev) {
-      console.log('[App] Initialized with tenant:', tenant);
+      console.log('[App] Initialized with tenant:', currentTenant.value);
     }
   } catch (error) {
     console.error('[App] Initialization error:', error);

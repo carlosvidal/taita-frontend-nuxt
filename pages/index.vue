@@ -92,62 +92,144 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('es-ES', options);
 };
 
-// Fetch posts when component is mounted
-onMounted(async () => {
-  // Only run on client-side
-  if (!process.client) return;
-  
-  try {
-    loading.value = true;
-    error.value = null;
-    
-    console.log('Iniciando carga de posts...');
-    
-    // Determine tenant based on hostname (client-side only)
-    const hostname = window?.location?.hostname || '';
-    const subdomain = hostname.split('.')[0];
-    const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
-      ? 'taita' 
-      : subdomain;
-    
-    // Configure tenant
-    blogStore.setTenant(tenant);
-    
-    // Fetch recent posts
-    const response = await blogStore.fetchPosts({ 
-      limit: 5,
-      include: 'category,tags,author',
-      status: 'published',
-      orderBy: 'published_at',
-      order: 'desc'
-    });
-    
-    console.log('Respuesta de la API:', response);
-    
-    // Handle both direct and paginated responses
-    const posts = Array.isArray(response) ? response : (response?.data || []);
-    recentPosts.value = posts;
-    
-    if (recentPosts.value.length === 0) {
-      console.warn('No se encontraron posts. Verifica la respuesta de la API.');
+// Mock data function for static generation
+const mockStaticPosts = () => {
+  return [
+    {
+      id: 1,
+      title: 'Bienvenido al Blog',
+      slug: 'bienvenido-al-blog',
+      excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
+      content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
+      featured_image: '/images/placeholder.jpg',
+      featured: true,
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      reading_time: 2,
+      author_id: 1,
+      category_id: 1,
+      author: {
+        id: 1,
+        name: 'Admin',
+        email: 'admin@example.com',
+        bio: 'Administrador del blog',
+        avatar: '/images/placeholder-avatar.jpg'
+      },
+      category: {
+        id: 1,
+        name: 'General',
+        slug: 'general',
+        description: 'Categoría general'
+      },
+      tags: [
+        {
+          id: 1,
+          name: 'Blog',
+          slug: 'blog',
+          description: 'Artículos de blog'
+        }
+      ]
+    },
+    {
+      id: 2,
+      title: 'Cómo utilizar Nuxt 3',
+      slug: 'como-utilizar-nuxt-3',
+      excerpt: 'Aprende a utilizar Nuxt 3 para crear sitios web estáticos.',
+      content: '<p>Nuxt 3 es un framework potente para crear sitios web estáticos y aplicaciones web.</p>',
+      featured_image: '/images/placeholder.jpg',
+      featured: false,
+      published_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      updated_at: new Date(Date.now() - 86400000).toISOString(),
+      reading_time: 5,
+      author_id: 1,
+      category_id: 2,
+      author: {
+        id: 1,
+        name: 'Admin',
+        email: 'admin@example.com',
+        bio: 'Administrador del blog',
+        avatar: '/images/placeholder-avatar.jpg'
+      },
+      category: {
+        id: 2,
+        name: 'Tecnología',
+        slug: 'tecnologia',
+        description: 'Artículos sobre tecnología'
+      },
+      tags: [
+        {
+          id: 2,
+          name: 'Nuxt',
+          slug: 'nuxt',
+          description: 'Artículos sobre Nuxt'
+        }
+      ]
+    }
+  ];
+};
+
+// Get static mode from plugin
+const { $isStatic } = useNuxtApp();
+
+// Use Nuxt's async data for both client and SSR/SSG compatibility
+const { data: postsData, pending, error: fetchError } = await useAsyncData(
+  'home-posts',
+  async () => {
+    // In static mode, return mock data
+    if ($isStatic && $isStatic()) {
+      return mockStaticPosts();
     }
     
-  } catch (err: any) {
-    console.error('Error loading posts:', err);
-    error.value = 'No se pudieron cargar las publicaciones. Por favor, intente de nuevo más tarde.';
-    if (err.response) {
-      console.error('Detalles del error:', {
-        status: err.response.status,
-        data: err.response.data,
-        url: err.response.config?.url
+    try {
+      // For normal operation, use a safe tenant/subdomain approach
+      let tenant = 'taita'; // Default tenant
+      
+      if (process.client) {
+        // Client-side tenant detection
+        const hostname = window?.location?.hostname || '';
+        const subdomain = hostname.split('.')[0];
+        tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain)
+          ? 'taita'
+          : subdomain;
+      }
+      
+      // Configure tenant
+      blogStore.setTenant(tenant);
+      
+      // Fetch recent posts
+      const response = await blogStore.fetchPosts({
+        limit: 5,
+        include: 'category,tags,author',
+        status: 'published',
+        orderBy: 'published_at',
+        order: 'desc'
       });
-      error.value += ` (Error ${err.response.status})`;
+      
+      // Handle both direct and paginated responses
+      return Array.isArray(response) ? response : (response?.data || []);
+    } catch (err: any) {
+      console.error('Error loading posts:', err);
+      if (err.response) {
+        console.error('Detalles del error:', {
+          status: err.response.status,
+          data: err.response.data,
+          url: err.response.config?.url
+        });
+      }
+      return [];
     }
-    recentPosts.value = [];
-  } finally {
-    loading.value = false;
+  },
+  {
+    // For static generation, ensure we don't depend on request context
+    server: true,
+    lazy: false
   }
-});
+);
+
+// Reactive references for template
+loading.value = pending.value;
+error.value = fetchError.value ? 'No se pudieron cargar las publicaciones. Por favor, intente de nuevo más tarde.' : null;
+recentPosts.value = postsData.value || [];
 </script>
 
 <style scoped>
