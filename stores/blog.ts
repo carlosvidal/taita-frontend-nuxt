@@ -106,7 +106,6 @@ export const useBlogStore = defineStore('blog', () => {
   
   let authStore = null;
   if (process.client) {
-    nuxtApp = useNuxtApp();
     authStore = useAuthStore();
   }
 
