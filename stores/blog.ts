@@ -98,9 +98,12 @@ const useSafeConfig = () => {
 };
 
 export const useBlogStore = defineStore('blog', () => {
+  // Static mode global para todo el store
+  const nuxtApp = typeof useNuxtApp === 'function' ? useNuxtApp() : null;
+  const isStaticMode = (process.server && process.env.NODE_ENV === 'production') || (nuxtApp?.$staticMode ?? defaultConfig.staticMode);
   // Initialize config
   const config = useSafeConfig();
-  let nuxtApp = null;
+  
   let authStore = null;
   if (process.client) {
     nuxtApp = useNuxtApp();
@@ -133,12 +136,8 @@ export const useBlogStore = defineStore('blog', () => {
         baseUrl = baseUrl.slice(0, -1);
       }
       
-      // Set the API base URL with tenant
-      if (currentTenant.value) {
-        apiBaseUrl.value = `${baseUrl}/${currentTenant.value}`;
-      } else {
-        apiBaseUrl.value = baseUrl;
-      }
+      // Set the API base URL (nunca concatena tenant)
+      apiBaseUrl.value = baseUrl;
       
       // Set the image base URL
       imageBaseUrl.value = config.imageUrl || '';
