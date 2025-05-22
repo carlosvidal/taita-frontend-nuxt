@@ -363,6 +363,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'X-Taita-Subdomain': currentTenant.value || 'demo',
           },
           // Add timeout for the request
           timeout: 10000,
@@ -487,6 +488,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'X-Taita-Subdomain': currentTenant.value || 'demo',
         },
         params: {
           include: 'category,tags,author'
@@ -941,6 +943,7 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'X-Taita-Subdomain': currentTenant.value || 'demo',
           }
         }
       );
