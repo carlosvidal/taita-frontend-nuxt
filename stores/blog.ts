@@ -120,7 +120,7 @@ export const useBlogStore = defineStore('blog', () => {
   const perPage = ref(10);
   const totalItems = ref(0);
   const currentTenant = ref(config.tenantDomain);
-  const apiBaseUrl = ref(`${config.apiBase}/${config.tenantDomain}`);
+  const apiBaseUrl = ref(config.apiBase); // No concatenar tenantDomain al path
   const imageBaseUrl = ref(config.imageUrl);
 
   // Update URLs when config changes
@@ -176,7 +176,8 @@ export const useBlogStore = defineStore('blog', () => {
   // Fetch posts with pagination and filters
   const fetchPosts = async (params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
     // Check if we're in static generation mode or SSR production mode
-    const isStaticMode = (process.server && process.env.NODE_ENV === 'production') || config.staticMode;
+    const nuxtApp = typeof useNuxtApp === 'function' ? useNuxtApp() : null;
+const isStaticMode = (process.server && process.env.NODE_ENV === 'production') || (nuxtApp?.$staticMode ?? config.staticMode);
     
     // Provide mock data for static generation
     if (isStaticMode) {

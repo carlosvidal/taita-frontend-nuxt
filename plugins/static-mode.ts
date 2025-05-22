@@ -12,7 +12,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   // Return an accessible composable with a different name to avoid conflicts
   return {
     provide: {
-      staticMode: isStaticMode
+      $staticMode: isStaticMode
     }
   }
 })

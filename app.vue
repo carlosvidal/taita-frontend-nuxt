@@ -14,7 +14,7 @@
     
     <!-- Debug overlay (only in development) -->
     <ClientOnly>
-      <div v-if="process.dev" class="fixed bottom-4 right-4 bg-black/80 text-white p-3 rounded-lg text-xs z-40">
+      <div v-if="isDev" class="fixed bottom-4 right-4 bg-black/80 text-white p-3 rounded-lg text-xs z-40">
         <div>Tenant: {{ currentTenant || 'default' }}</div>
         <div>Environment: {{ isDev ? 'Development' : 'Production' }}</div>
         <div v-if="initialized">Initialized</div>
@@ -34,7 +34,7 @@ const router = useRouter();
 // State
 const currentTenant = ref('taita'); // Default tenant
 const isLoading = ref(true);
-const isDev = process.dev;
+const isDev = import.meta.env.DEV;
 const initialized = ref(false);
 
 // Detect tenant from hostname or config
@@ -46,7 +46,7 @@ const detectTenant = () => {
       if (process.env.NODE_ENV === 'production') {
         return process.env.NUXT_PUBLIC_TENANT || 'taita';
       }
-      // In development, allow dynamic tenant detection
+      // En desarrollo, permite la detección dinámica del tenant
       return process.env.NUXT_PUBLIC_TENANT || 'taita';
     }
     
@@ -88,7 +88,7 @@ const initializeApp = async () => {
     }
     // Mark as initialized
     initialized.value = true;
-    if (process.dev) {
+    if (isDev) {
       console.log('[App] Initialized with tenant:', currentTenant.value);
     }
   } catch (error) {
@@ -103,7 +103,7 @@ const initializeApp = async () => {
 
 // Handle page mounted event
 const onPageMounted = () => {
-  if (process.dev) {
+  if (isDev) {
     console.log(`[App] Page mounted: ${window.location.pathname}`);
   }
 };
