@@ -786,7 +786,8 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           query.append(key, value.toString());
-      );
+        }
+      });
       
       return response;
     } catch (err: any) {
