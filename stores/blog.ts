@@ -67,7 +67,7 @@ const defaultConfig = {
   siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'Taita Blog',
   tenantDomain: process.env.NUXT_PUBLIC_TENANT_DOMAIN || 'taita',
   tenant: process.env.NUXT_PUBLIC_TENANT || 'taita',
-  isStatic: process.env.NUXT_PUBLIC_STATIC === 'true'
+  staticMode: process.env.NUXT_PUBLIC_STATIC === 'true'
 };
 
 // Helper function to safely access runtime config
@@ -176,7 +176,7 @@ export const useBlogStore = defineStore('blog', () => {
   // Fetch posts with pagination and filters
   const fetchPosts = async (params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
     // Check if we're in static generation mode or SSR production mode
-    const isStaticMode = (process.server && process.env.NODE_ENV === 'production') || config.isStatic;
+    const isStaticMode = (process.server && process.env.NODE_ENV === 'production') || config.staticMode;
     
     // Provide mock data for static generation
     if (isStaticMode) {
@@ -396,7 +396,559 @@ export const useBlogStore = defineStore('blog', () => {
     }
   };
 
-  // ... (other action implementations remain the same)
+  // Fetch a single post by slug
+  const fetchPost = async (slug: string): Promise<Post | null> => {
+    // Use static data in static mode
+    if (isStaticMode) {
+      // Find post in mock data
+      const mockPosts = [
+        {
+          id: 1,
+          title: 'Bienvenido al Blog',
+          slug: 'bienvenido-al-blog',
+          excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
+          content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
+          featured_image: '/images/placeholder.jpg',
+          featured: true,
+          published_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          reading_time: 2,
+          author_id: 1,
+          category_id: 1,
+          author: {
+            id: 1,
+            name: 'Admin',
+            email: 'admin@example.com',
+            bio: 'Administrador del blog',
+            avatar: '/images/placeholder-avatar.jpg'
+          },
+          category: {
+            id: 1,
+            name: 'General',
+            slug: 'general',
+            description: 'Categoría general'
+          },
+          tags: [
+            {
+              id: 1,
+              name: 'Blog',
+              slug: 'blog',
+              description: 'Artículos de blog'
+            }
+          ],
+          meta_title: 'Bienvenido al Blog',
+          meta_description: 'Artículo de bienvenida al blog'
+        },
+        {
+          id: 2,
+          title: 'Cómo utilizar Nuxt 3',
+          slug: 'como-utilizar-nuxt-3',
+          excerpt: 'Aprende a utilizar Nuxt 3 para crear sitios web estáticos.',
+          content: '<p>Nuxt 3 es un framework potente para crear sitios web estáticos y aplicaciones web.</p>',
+          featured_image: '/images/placeholder.jpg',
+          featured: false,
+          published_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+          updated_at: new Date(Date.now() - 86400000).toISOString(),
+          reading_time: 5,
+          author_id: 1,
+          category_id: 2,
+          author: {
+            id: 1,
+            name: 'Admin',
+            email: 'admin@example.com',
+            bio: 'Administrador del blog',
+            avatar: '/images/placeholder-avatar.jpg'
+          },
+          category: {
+            id: 2,
+            name: 'Tecnología',
+            slug: 'tecnologia',
+            description: 'Artículos sobre tecnología'
+          },
+          tags: [
+            {
+              id: 2,
+              name: 'Nuxt',
+              slug: 'nuxt',
+              description: 'Artículos sobre Nuxt'
+            }
+          ],
+          meta_title: 'Cómo utilizar Nuxt 3',
+          meta_description: 'Guía completa para utilizar Nuxt 3'
+        }
+      ];
+      
+      const post = mockPosts.find(p => p.slug === slug);
+      return post || null;
+    }
+    
+    try {
+      // Make API request to get the post
+      const response = await $fetch<Post>(`${apiBaseUrl.value}/posts/${slug}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        params: {
+          include: 'category,tags,author'
+        }
+      });
+      
+      // Update currentPost in the store
+      currentPost.value = response;
+      
+      return response;
+    } catch (err: any) {
+      console.error(`[BlogStore] Error fetching post ${slug}:`, err);
+      error.value = `Error fetching post: ${err.message || 'Unknown error'}`;
+      return null;
+    }
+  };
+
+  // Fetch all categories
+  const fetchCategories = async (): Promise<Category[]> => {
+    // Use static data in static mode
+    if (isStaticMode) {
+      // Mock categories for static mode
+      const mockCategories: Category[] = [
+        {
+          id: 1,
+          name: 'General',
+          slug: 'general',
+          description: 'Categoría general'
+        },
+        {
+          id: 2,
+          name: 'Tecnología',
+          slug: 'tecnologia',
+          description: 'Artículos sobre tecnología'
+        }
+      ];
+      
+      categories.value = mockCategories;
+      return mockCategories;
+    }
+    
+    try {
+      // Make API request to get categories
+      const response = await $fetch<Category[]>(`${apiBaseUrl.value}/categories`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      // Update categories in the store
+      categories.value = response;
+      
+      return response;
+    } catch (err: any) {
+      console.error('[BlogStore] Error fetching categories:', err);
+      error.value = `Error fetching categories: ${err.message || 'Unknown error'}`;
+      return [];
+    }
+  };
+
+  // Fetch a single category by slug
+  const fetchCategory = async (slug: string): Promise<Category | null> => {
+    // Use static data in static mode
+    if (isStaticMode) {
+      // Mock categories for static mode
+      const mockCategories: Category[] = [
+        {
+          id: 1,
+          name: 'General',
+          slug: 'general',
+          description: 'Categoría general'
+        },
+        {
+          id: 2,
+          name: 'Tecnología',
+          slug: 'tecnologia',
+          description: 'Artículos sobre tecnología'
+        }
+      ];
+      
+      const category = mockCategories.find(c => c.slug === slug);
+      return category || null;
+    }
+    
+    try {
+      // Make API request to get the category
+      const response = await $fetch<Category>(`${apiBaseUrl.value}/categories/${slug}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      return response;
+    } catch (err: any) {
+      console.error(`[BlogStore] Error fetching category ${slug}:`, err);
+      error.value = `Error fetching category: ${err.message || 'Unknown error'}`;
+      return null;
+    }
+  };
+
+  // Fetch all tags
+  const fetchTags = async (): Promise<Tag[]> => {
+    // Use static data in static mode
+    if (isStaticMode) {
+      // Mock tags for static mode
+      const mockTags: Tag[] = [
+        {
+          id: 1,
+          name: 'Blog',
+          slug: 'blog',
+          description: 'Artículos de blog'
+        },
+        {
+          id: 2,
+          name: 'Nuxt',
+          slug: 'nuxt',
+          description: 'Artículos sobre Nuxt'
+        },
+        {
+          id: 3,
+          name: 'JavaScript',
+          slug: 'javascript',
+          description: 'Artículos sobre JavaScript'
+        }
+      ];
+      
+      tags.value = mockTags;
+      return mockTags;
+    }
+    
+    try {
+      // Make API request to get tags
+      const response = await $fetch<Tag[]>(`${apiBaseUrl.value}/tags`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      // Update tags in the store
+      tags.value = response;
+      
+      return response;
+    } catch (err: any) {
+      console.error('[BlogStore] Error fetching tags:', err);
+      error.value = `Error fetching tags: ${err.message || 'Unknown error'}`;
+      return [];
+    }
+  };
+
+  // Fetch a single tag by slug
+  const fetchTag = async (slug: string): Promise<Tag | null> => {
+    // Use static data in static mode
+    if (isStaticMode) {
+      // Mock tags for static mode
+      const mockTags: Tag[] = [
+        {
+          id: 1,
+          name: 'Blog',
+          slug: 'blog',
+          description: 'Artículos de blog'
+        },
+        {
+          id: 2,
+          name: 'Nuxt',
+          slug: 'nuxt',
+          description: 'Artículos sobre Nuxt'
+        },
+        {
+          id: 3,
+          name: 'JavaScript',
+          slug: 'javascript',
+          description: 'Artículos sobre JavaScript'
+        }
+      ];
+      
+      const tag = mockTags.find(t => t.slug === slug);
+      return tag || null;
+    }
+    
+    try {
+      // Make API request to get the tag
+      const response = await $fetch<Tag>(`${apiBaseUrl.value}/tags/${slug}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      return response;
+    } catch (err: any) {
+      console.error(`[BlogStore] Error fetching tag ${slug}:`, err);
+      error.value = `Error fetching tag: ${err.message || 'Unknown error'}`;
+      return null;
+    }
+  };
+
+  // Fetch posts by category
+  const fetchPostsByCategory = async (categorySlug: string, params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
+    // Use static data in static mode
+    if (isStaticMode) {
+      // Mock posts data
+      const mockPosts = [
+        {
+          id: 1,
+          title: 'Bienvenido al Blog',
+          slug: 'bienvenido-al-blog',
+          excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
+          content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
+          featured_image: '/images/placeholder.jpg',
+          featured: true,
+          published_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          reading_time: 2,
+          author_id: 1,
+          category_id: 1,
+          author: {
+            id: 1,
+            name: 'Admin',
+            email: 'admin@example.com',
+            bio: 'Administrador del blog',
+            avatar: '/images/placeholder-avatar.jpg'
+          },
+          category: {
+            id: 1,
+            name: 'General',
+            slug: 'general',
+            description: 'Categoría general'
+          },
+          tags: [
+            {
+              id: 1,
+              name: 'Blog',
+              slug: 'blog',
+              description: 'Artículos de blog'
+            }
+          ]
+        },
+        {
+          id: 2,
+          title: 'Cómo utilizar Nuxt 3',
+          slug: 'como-utilizar-nuxt-3',
+          excerpt: 'Aprende a utilizar Nuxt 3 para crear sitios web estáticos.',
+          content: '<p>Nuxt 3 es un framework potente para crear sitios web estáticos y aplicaciones web.</p>',
+          featured_image: '/images/placeholder.jpg',
+          featured: false,
+          published_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+          updated_at: new Date(Date.now() - 86400000).toISOString(),
+          reading_time: 5,
+          author_id: 1,
+          category_id: 2,
+          author: {
+            id: 1,
+            name: 'Admin',
+            email: 'admin@example.com',
+            bio: 'Administrador del blog',
+            avatar: '/images/placeholder-avatar.jpg'
+          },
+          category: {
+            id: 2,
+            name: 'Tecnología',
+            slug: 'tecnologia',
+            description: 'Artículos sobre tecnología'
+          },
+          tags: [
+            {
+              id: 2,
+              name: 'Nuxt',
+              slug: 'nuxt',
+              description: 'Artículos sobre Nuxt'
+            }
+          ]
+        }
+      ];
+      
+      // Filter posts by category slug
+      const filteredPosts = mockPosts.filter(post => post.category?.slug === categorySlug);
+      
+      return {
+        data: filteredPosts,
+        current_page: 1,
+        last_page: 1,
+        per_page: filteredPosts.length,
+        total: filteredPosts.length
+      };
+    }
+    
+    loading.value = true;
+    error.value = null;
+    
+    try {
+      const query = new URLSearchParams();
+      
+      // Add query parameters
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          query.append(key, value.toString());
+        }
+      });
+      
+      // Make API request
+      const response = await $fetch<PaginatedResponse<Post>>(
+        `${apiBaseUrl.value}/categories/${categorySlug}/posts?${query.toString()}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+      
+      return response;
+    } catch (err: any) {
+      console.error(`[BlogStore] Error fetching posts for category ${categorySlug}:`, err);
+      error.value = `Error fetching posts: ${err.message || 'Unknown error'}`;
+      
+      return {
+        data: [],
+        current_page: 1,
+        last_page: 1,
+        per_page: 10,
+        total: 0
+      };
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Search posts
+  const searchPosts = async (query: string, params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
+    // Use static data in static mode
+    if (isStaticMode) {
+      // Mock posts data
+      const mockPosts = [
+        {
+          id: 1,
+          title: 'Bienvenido al Blog',
+          slug: 'bienvenido-al-blog',
+          excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
+          content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
+          featured_image: '/images/placeholder.jpg',
+          featured: true,
+          published_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          reading_time: 2,
+          author_id: 1,
+          category_id: 1,
+          author: {
+            id: 1,
+            name: 'Admin',
+            email: 'admin@example.com',
+            bio: 'Administrador del blog',
+            avatar: '/images/placeholder-avatar.jpg'
+          },
+          category: {
+            id: 1,
+            name: 'General',
+            slug: 'general',
+            description: 'Categoría general'
+          },
+          tags: [
+            {
+              id: 1,
+              name: 'Blog',
+              slug: 'blog',
+              description: 'Artículos de blog'
+            }
+          ]
+        },
+        {
+          id: 2,
+          title: 'Cómo utilizar Nuxt 3',
+          slug: 'como-utilizar-nuxt-3',
+          excerpt: 'Aprende a utilizar Nuxt 3 para crear sitios web estáticos.',
+          content: '<p>Nuxt 3 es un framework potente para crear sitios web estáticos y aplicaciones web.</p>',
+          featured_image: '/images/placeholder.jpg',
+          featured: false,
+          published_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+          updated_at: new Date(Date.now() - 86400000).toISOString(),
+          reading_time: 5,
+          author_id: 1,
+          category_id: 2,
+          author: {
+            id: 1,
+            name: 'Admin',
+            email: 'admin@example.com',
+            bio: 'Administrador del blog',
+            avatar: '/images/placeholder-avatar.jpg'
+          },
+          category: {
+            id: 2,
+            name: 'Tecnología',
+            slug: 'tecnologia',
+            description: 'Artículos sobre tecnología'
+          },
+          tags: [
+            {
+              id: 2,
+              name: 'Nuxt',
+              slug: 'nuxt',
+              description: 'Artículos sobre Nuxt'
+            }
+          ]
+        }
+      ];
+      
+      // Simple search across title, excerpt, and content
+      const searchTerm = query.toLowerCase();
+      const filteredPosts = mockPosts.filter(post => 
+        post.title.toLowerCase().includes(searchTerm) ||
+        post.excerpt?.toLowerCase().includes(searchTerm) ||
+        post.content?.toLowerCase().includes(searchTerm)
+      );
+      
+      return {
+        data: filteredPosts,
+        current_page: 1,
+        last_page: 1,
+        per_page: filteredPosts.length,
+        total: filteredPosts.length
+      };
+    }
+    
+    loading.value = true;
+    error.value = null;
+    
+    try {
+      const searchParams = new URLSearchParams({
+        q: query,
+        ...params
+      });
+      
+      // Make API request
+      const response = await $fetch<PaginatedResponse<Post>>(
+        `${apiBaseUrl.value}/search?${searchParams.toString()}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+      
+      return response;
+    } catch (err: any) {
+      console.error(`[BlogStore] Error searching posts with query "${query}":`, err);
+      error.value = `Error searching posts: ${err.message || 'Unknown error'}`;
+      
+      return {
+        data: [],
+        current_page: 1,
+        last_page: 1,
+        per_page: 10,
+        total: 0
+      };
+    } finally {
+      loading.value = false;
+    }
+  };
 
   // Fetch posts by tag
   const fetchPostsByTag = async (tagSlug: string, params: Record<string, any> = {}) => {
