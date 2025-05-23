@@ -27,11 +27,17 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useBlogStore } from '~/stores/blog';
 
 const blogStore = useBlogStore();
 const siteName = computed(() => blogStore?.config?.siteName || blogStore?.config?.site_name || 'Taita Blog');
+
+onMounted(() => {
+  console.log('[Settings] siteName:', blogStore?.config?.siteName, '| site_name:', blogStore?.config?.site_name);
+  console.log('[Settings] config:', blogStore?.config);
+  console.log('[Settings] currentTenant:', blogStore?.currentTenant);
+});
 </script>
 
 <style scoped>
