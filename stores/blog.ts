@@ -866,16 +866,30 @@ const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?tenant=${safeTenan
         }
       });
       
-      // Update the store with the posts
-      posts.value = response.data.posts || [];
-      
+      // Estructura defensiva para evitar errores si la respuesta no es la esperada
+      let postsArray = [];
+      let pagination = { total: 0, current_page: 1, last_page: 1, per_page: 10 };
+      if (response && response.data) {
+        if (Array.isArray(response.data.posts)) {
+          postsArray = response.data.posts;
+        } else if (Array.isArray(response.data)) {
+          postsArray = response.data;
+        }
+        if (response.data.pagination) {
+          pagination = {
+            total: response.data.pagination.total || 0,
+            current_page: response.data.pagination.current_page || 1,
+            last_page: response.data.pagination.last_page || 1,
+            per_page: response.data.pagination.per_page || 10,
+          };
+        }
+      }
+      posts.value = postsArray;
       return {
-        data: response.data.posts || [],
-        total: response.data.pagination?.total || 0,
-        current_page: response.data.pagination?.current_page || 1,
-        last_page: response.data.pagination?.last_page || 1,
-        per_page: response.data.pagination?.per_page || 10,
+        data: postsArray,
+        ...pagination
       };
+
     } catch (err: any) {
       console.error('Error fetching posts by tag:', err);
       error.value = 'No se pudieron cargar las publicaciones de la etiqueta';
