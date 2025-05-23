@@ -815,7 +815,9 @@ const response = await $fetch<PaginatedResponse<Post>>(url, {
       
       return response;
     } catch (err: any) {
-      console.error(`[BlogStore] Error searching posts with query "${query}":`, err);
+      // query puede no estar definida si falla antes
+      const queryString = typeof query !== 'undefined' ? query.toString() : '';
+      console.error(`[BlogStore] Error searching posts with query "${queryString}":`, err);
       error.value = `Error searching posts: ${err.message || 'Unknown error'}`;
       
       return {
