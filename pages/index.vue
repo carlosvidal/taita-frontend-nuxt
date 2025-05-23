@@ -64,12 +64,15 @@ const error = ref<string | null>(null);
 
 // Format date helper
 const formatDate = (dateString: string) => {
+  if (!dateString) return '';
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   };
-  return new Date(dateString).toLocaleDateString('es-ES', options);
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('es-ES', options);
 };
 
 // Mock data function for static generation
