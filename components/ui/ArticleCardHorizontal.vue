@@ -37,7 +37,7 @@
 
           <!-- Title -->
           <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            <NuxtLink :to="`/post/${post.slug}`" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+            <NuxtLink :to="`/blog/${post.slug}`" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
               {{ post.title }}
             </NuxtLink>
           </h3>
@@ -75,10 +75,10 @@
             </div>
             
             <NuxtLink 
-              :to="`/post/${post.slug}`" 
+              :to="`/blog/${post.slug}`"
               class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-indigo-900 dark:text-indigo-100 dark:hover:bg-indigo-800"
             >
-              Leer más
+              Leer más →
             </NuxtLink>
           </div>
         </div>

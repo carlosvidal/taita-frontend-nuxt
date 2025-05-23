@@ -10,20 +10,19 @@ export default defineNuxtPlugin((nuxtApp) => {
   const detectTenant = () => {
     try {
       const hostname = window.location.hostname;
+      // Si el hostname es una IP que empieza con 192., retorna 'demo'
+      if (/^192\./.test(hostname)) return 'demo';
       const subdomain = hostname.split('.')[0].toLowerCase();
-      
       // Skip common subdomains and IP addresses
       const ignoredSubdomains = [
         'www', 'app', 'staging', 'test', 'dev', 'beta', 'admin',
         'localhost', '127.0.0.1', '0.0.0.0', '::1'
       ];
-      
       // Check if the subdomain is a valid tenant
       if (!ignoredSubdomains.includes(subdomain) && subdomain !== '') {
         console.log(`[Tenant] Setting tenant from subdomain: ${subdomain}`);
         return subdomain;
       }
-      
       // Fallback to default tenant
       console.log('[Tenant] Using default tenant: taita');
       return 'taita';

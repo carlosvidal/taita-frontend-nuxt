@@ -29,28 +29,8 @@
       <!-- Featured Posts -->
       <section class="posts-list">
         <div v-if="Array.isArray(recentPosts) && recentPosts.length > 0" class="space-y-16">
-          <article v-for="post in recentPosts" :key="post.id" class="post-preview">
-            <div class="post-meta">
-              <time :datetime="post.published_at" class="post-date">
-                {{ formatDate(post.published_at) }}
-              </time>
-              <span v-if="post.category" class="post-category">
-                {{ post.category.name }}
-              </span>
-            </div>
-            
-            <h2 class="post-title">
-              <NuxtLink :to="`/blog/${post.slug}`">{{ post.title }}</NuxtLink>
-            </h2>
-            
-            <div class="post-excerpt" v-html="post.excerpt"></div>
-            
-            <div class="post-read-more">
-              <NuxtLink :to="`/blog/${post.slug}`" class="read-more">
-                Leer más →
-              </NuxtLink>
-            </div>
-          </article>
+          <ArticleCardHorizontal v-for="post in recentPosts" :key="post.id" :post="post" />
+
         </div>
         
         <div v-else class="no-posts">

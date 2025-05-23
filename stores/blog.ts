@@ -356,13 +356,17 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         console.log(`[BlogStore] Fetching posts from: ${apiBaseUrl.value}/posts?${query.toString()}`);
       }
 
-      query.append('tenant', currentTenant.value || 'demo');
+      // Si el tenant es una IP 192.x.x.x, usar 'demo'
+let tenantValue = currentTenant.value || 'demo';
+if (/^192\./.test(tenantValue)) tenantValue = 'demo';
+query.set('tenant', tenantValue);
       const response = await $fetch<PaginatedResponse<Post>>(
         `${apiBaseUrl.value}/posts/public?${query.toString()}`,
         {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'X-Taita-Subdomain': tenantValue,
           },
           timeout: 10000,
         }
@@ -531,7 +535,9 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get categories
-      const response = await $fetch<Category[]>(`${apiBaseUrl.value}/categories/public?tenant=${currentTenant.value || 'demo'}`, {
+      // Si el tenant es una IP 192.x.x.x, usar 'demo'
+const safeTenant = /^192\./.test(currentTenant.value) ? 'demo' : (currentTenant.value || 'demo');
+const response = await $fetch<Category[]>(`${apiBaseUrl.value}/categories/public?tenant=${safeTenant}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -575,7 +581,9 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get the category
-      const response = await $fetch<Category>(`${apiBaseUrl.value}/categories/public/${slug}?tenant=${currentTenant.value || 'demo'}`, {
+      // Si el tenant es una IP 192.x.x.x, usar 'demo'
+const safeTenant = /^192\./.test(currentTenant.value) ? 'demo' : (currentTenant.value || 'demo');
+const response = await $fetch<Category>(`${apiBaseUrl.value}/categories/public/${slug}?tenant=${safeTenant}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -622,7 +630,9 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get tags
-      const response = await $fetch<Tag[]>(`${apiBaseUrl.value}/tags/public?tenant=${currentTenant.value || 'demo'}`, {
+      // Si el tenant es una IP 192.x.x.x, usar 'demo'
+const safeTenant = /^192\./.test(currentTenant.value) ? 'demo' : (currentTenant.value || 'demo');
+const response = await $fetch<Tag[]>(`${apiBaseUrl.value}/tags/public?tenant=${safeTenant}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -672,7 +682,8 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
     
     try {
       // Make API request to get the tag
-      const response = await $fetch<Tag>(`${apiBaseUrl.value}/tags/public/${slug}?tenant=${currentTenant.value || 'demo'}`, {
+      const safeTenant = /^192\./.test(currentTenant.value) ? 'demo' : (currentTenant.value || 'demo');
+      const response = await $fetch<Tag>(`${apiBaseUrl.value}/tags/public/${slug}?tenant=${safeTenant}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -790,8 +801,12 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
         }
       });
       
-      const url = `${apiBaseUrl.value}/categories/public/${categorySlug}/posts?tenant=${currentTenant.value || 'demo'}&${query.toString()}`;
-      const response = await $fetch<PaginatedResponse<Post>>(url, {
+      // Si el tenant es una IP 192.x.x.x, usar 'demo'
+const safeTenant = /^192\./.test(currentTenant.value) ? 'demo' : (currentTenant.value || 'demo');
+const url = `${apiBaseUrl.value}/categories/public/${categorySlug}/posts?tenant=${safeTenant}&${query.toString()}`;
+      // Si el tenant es una IP 192.x.x.x, usar 'demo'
+if (params.tenant && /^192\./.test(params.tenant)) params.tenant = 'demo';
+const response = await $fetch<PaginatedResponse<Post>>(url, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -839,7 +854,9 @@ const isStaticMode = (process.server && process.env.NODE_ENV === 'production') |
       }
       
       // Add subdomain as a query parameter
-      const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?tenant=${currentTenant.value || 'demo'}&${query.toString()}`;
+      // Si el tenant es una IP 192.x.x.x, usar 'demo'
+const safeTenant = /^192\./.test(currentTenant.value) ? 'demo' : (currentTenant.value || 'demo');
+const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?tenant=${safeTenant}&${query.toString()}`;
       const response = await $fetch<any>(url, {
         headers: {
           'Accept': 'application/json',

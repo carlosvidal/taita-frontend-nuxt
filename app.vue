@@ -49,23 +49,21 @@ const detectTenant = () => {
       // En desarrollo, permite la detección dinámica del tenant
       return process.env.NUXT_PUBLIC_TENANT || 'taita';
     }
-    
     // Client-side tenant detection
     // Check for tenant in URL query parameter (for testing)
     const urlParams = new URLSearchParams(window.location.search);
     const urlTenant = urlParams.get('tenant');
     if (urlTenant) return urlTenant;
-    
     // Get tenant from hostname
     const hostname = window.location.hostname;
+    // Si el hostname es una IP que empieza con 192., retorna 'demo'
+    if (/^192\./.test(hostname)) return 'demo';
     const tenant = hostname.split('.')[0].toLowerCase();
-    
     // Skip common subdomains
     const ignoredSubdomains = [
       'www', 'app', 'staging', 'test', 'dev', 'beta', 'admin', 'api',
       'localhost', '127.0.0.1', '0.0.0.0', '::1'
     ];
-    
     return !ignoredSubdomains.includes(tenant) && tenant !== '' ? tenant : 'taita';
   } catch (error) {
     console.error('Error detecting tenant:', error);
