@@ -2,7 +2,7 @@
   <div class="container">
     <!-- Header -->
     <header class="site-header">
-      <h1 class="site-title">Read</h1>
+      <h1 class="site-title">{{ siteName }}</h1>
       <p class="site-description">... a minimalistic theme focused on readability.</p>
       
       <nav class="main-navigation">
@@ -21,10 +21,18 @@
     
     <!-- Footer -->
     <footer class="site-footer">
-      <p>&copy; {{ new Date().getFullYear() }} Taita Blog. Todos los derechos reservados.</p>
+      <p>&copy; {{ new Date().getFullYear() }} {{ siteName }}. Todos los derechos reservados.</p>
     </footer>
   </div>
 </template>
+
+<script setup>
+import { computed } from 'vue';
+import { useBlogStore } from '~/stores/blog';
+
+const blogStore = useBlogStore();
+const siteName = computed(() => blogStore?.config?.siteName || blogStore?.config?.site_name || 'Taita Blog');
+</script>
 
 <style scoped>
 .container {
