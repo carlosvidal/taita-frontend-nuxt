@@ -1,121 +1,36 @@
 <template>
-  <div class="container">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
     <!-- Header -->
-    <header class="site-header">
-      <h1 class="site-title">{{ siteName }}</h1>
-      <p class="site-description">... a minimalistic theme focused on readability.</p>
-      
-      <nav class="main-navigation">
-        <NuxtLink to="/" class="nav-link">Home</NuxtLink>
-        <NuxtLink to="/blog" class="nav-link">Blog</NuxtLink>
-        <NuxtLink to="/about" class="nav-link">About</NuxtLink>
-        <NuxtLink to="/contact" class="nav-link">Contact</NuxtLink>
-        <NuxtLink to="/search" class="nav-link">Search →</NuxtLink>
-      </nav>
-    </header>
+    <Header />
     
     <!-- Main Content -->
-    <main class="main-content">
+    <main class="flex-1">
       <slot />
     </main>
     
     <!-- Footer -->
-    <footer class="site-footer">
-      <p>&copy; {{ new Date().getFullYear() }} {{ siteName }}. Todos los derechos reservados.</p>
-    </footer>
+    <Footer />
   </div>
 </template>
 
-<script setup>
-import { computed, onMounted } from 'vue';
-import { useBlogStore } from '~/stores/blog';
-
-const blogStore = useBlogStore();
-const siteName = computed(() => blogStore?.config?.siteName || blogStore?.config?.site_name || 'Taita Blog');
-
-onMounted(() => {
-  console.log('[Settings] siteName:', blogStore?.config?.siteName, '| site_name:', blogStore?.config?.site_name);
-  console.log('[Settings] config:', blogStore?.config);
-  console.log('[Settings] currentTenant:', blogStore?.currentTenant);
-});
+<script setup lang="ts">
+// Import types if needed
+// No additional setup needed as Header and Footer components handle their own data
 </script>
 
-<style scoped>
-.container {
-  max-width: var(--container-width);
-  margin: 0 auto;
-  padding: 0 var(--container-padding);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+<style>
+/* Ensure proper transitions for dark mode */
+* {
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 
-.site-header {
-  padding: var(--spacing-md) 0;
-  margin-bottom: var(--spacing-lg);
-  text-align: center;
-  border-bottom: 1px solid var(--color-border);
+/* Override any conflicting styles */
+body {
+  @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
 }
 
-.site-title {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: var(--spacing-xs);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-
-.site-description {
-  color: var(--color-text-light);
-  margin-bottom: var(--spacing-md);
-  font-style: italic;
-}
-
-.main-navigation {
-  margin-top: var(--spacing-md);
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
-}
-
-.nav-link {
-  padding: 0.25rem 0;
-  margin: 0 0.5rem;
-  color: var(--color-text-light);
-  border-bottom: none;
-  transition: color 0.2s ease;
-}
-
-.nav-link:hover,
-.nav-link.router-link-active {
-  color: var(--color-text);
-  border-bottom: none;
-}
-
-.main-content {
-  flex: 1;
-  padding: var(--spacing-md) 0;
-}
-
-.site-footer {
-  text-align: center;
-  padding: var(--spacing-md) 0;
-  margin-top: var(--spacing-lg);
-  border-top: 1px solid var(--color-border);
-  color: var(--color-text-light);
-  font-size: 0.9rem;
-}
-
-@media (max-width: 768px) {
-  .main-navigation {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .nav-link {
-    margin: 0;
-  }
+/* Ensure proper font rendering */
+html {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 </style>
