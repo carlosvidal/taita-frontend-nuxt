@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+  <div class="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
     <!-- Header -->
     <Header />
     
-    <!-- Main Content -->
-    <main class="flex-1">
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8">
       <slot />
     </main>
     
@@ -26,7 +26,7 @@
 
 /* Override any conflicting styles */
 body {
-  @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+  @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
 }
 
 /* Ensure proper font rendering */
