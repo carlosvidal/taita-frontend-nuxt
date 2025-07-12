@@ -136,12 +136,12 @@ const searchQuery = ref('');
 const results = ref([]);
 const searchPerformed = ref(false);
 const loading = ref(false);
-const error = ref<string | null>(null);
+const error = ref(null);
 
 // Format date helper
-const formatDate = (dateString: string) => {
+const formatDate = (dateString) => {
   if (!dateString) return '';
-  const options: Intl.DateTimeFormatOptions = {
+  const options = {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
