@@ -4,8 +4,8 @@
       <!-- Featured Image -->
       <div class="h-48 w-full overflow-hidden">
         <img 
-          v-if="post.featured_image"
-          :src="getImageUrl(post.featured_image)" 
+          v-if="post.image"
+          :src="getImageUrl(post.image)" 
           :alt="post.title"
           class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
           loading="lazy"
