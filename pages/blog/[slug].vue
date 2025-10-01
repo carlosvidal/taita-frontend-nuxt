@@ -159,9 +159,13 @@ const slug = computed(() => route.params.slug as string);
 
 const getImageUrl = (path: string) => {
   if (!path) return '';
-  if (!path) return '';
-  if (path.startsWith('http')) return path;
-  return `https://taita-api.onrender.com/storage/${path}`;
+  // Si la URL ya es absoluta (Cloudinary u otro CDN), devolverla tal cual
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  // Si es una ruta relativa, construir la URL completa con la API
+  const apiBase = 'https://taita-api.onrender.com';
+  return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
 const formatDate = (dateString: string) => {
