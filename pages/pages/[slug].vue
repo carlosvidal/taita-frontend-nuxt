@@ -124,7 +124,7 @@ const getSubdomain = () => {
 const subdomain = getSubdomain();
 
 // Fetch page data
-const { data: page, pending, error } = await useFetch(`/api/pages-public/${slug}`, {
+const { data: page, pending, error } = await useFetch(`/api/pages/public/${slug}`, {
   baseURL: config.public.apiBase || 'https://taita-api.onrender.com',
   headers: {
     'X-Taita-Subdomain': subdomain
