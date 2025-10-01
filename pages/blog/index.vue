@@ -190,7 +190,7 @@
             <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Categorías</h2>
             <ul class="space-y-2">
               <li v-for="category in categories" :key="category.id">
-                <NuxtLink 
+                <NuxtLink
                   :to="`/category/${category.slug}`"
                   class="flex items-center justify-between px-3 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
@@ -198,7 +198,7 @@
                     {{ category.name }}
                   </span>
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                    {{ category.posts_count || 0 }}
+                    {{ category.postCount || category.posts_count || 0 }}
                   </span>
                 </NuxtLink>
               </li>
