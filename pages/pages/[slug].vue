@@ -94,11 +94,43 @@ const formatDate = (dateString: string) => {
   }).format(date);
 };
 
+// Get subdomain for tenant
+const getSubdomain = () => {
+  if (process.server) {
+    const headers = useRequestHeaders();
+    const host = headers.host || '';
+    if (host.includes('localhost') || host.includes('127.0.0.1')) {
+      return 'demo';
+    }
+    const parts = host.split('.');
+    if (parts.length >= 3 && parts[0] !== 'www') {
+      return parts[0];
+    }
+    return 'demo';
+  } else if (process.client) {
+    const host = window.location.hostname;
+    if (host.includes('localhost') || host.includes('127.0.0.1')) {
+      return 'demo';
+    }
+    const parts = host.split('.');
+    if (parts.length >= 3 && parts[0] !== 'www') {
+      return parts[0];
+    }
+    return 'demo';
+  }
+  return 'demo';
+};
+
+const subdomain = getSubdomain();
+
 // Fetch page data
 const { data: page, pending, error } = await useFetch(`/api/pages-public/${slug}`, {
   baseURL: config.public.apiBase || 'https://taita-api.onrender.com',
   headers: {
-    'X-Blog-Identifier': useRequestHeaders(['host']).host || 'demo.taita.blog'
+    'X-Taita-Subdomain': subdomain
+  },
+  params: {
+    tenant: subdomain
   }
 });
 
