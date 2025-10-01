@@ -99,29 +99,46 @@ const getSubdomain = () => {
   if (process.server) {
     const headers = useRequestHeaders();
     const host = headers.host || '';
-    if (host.includes('localhost') || host.includes('127.0.0.1')) {
+    console.log('[Pages/Server] Detecting subdomain from host:', host);
+    // En desarrollo local, usar 'demo' para cualquier IP o localhost
+    if (host.includes('localhost') || host.includes('127.0.0.1') || host.match(/^192\.168\.\d+\.\d+/)) {
+      console.log('[Pages/Server] Using demo subdomain for local development');
       return 'demo';
     }
     const parts = host.split('.');
     if (parts.length >= 3 && parts[0] !== 'www') {
+      console.log('[Pages/Server] Detected subdomain:', parts[0]);
       return parts[0];
     }
+    console.log('[Pages/Server] Using default demo subdomain');
     return 'demo';
   } else if (process.client) {
     const host = window.location.hostname;
-    if (host.includes('localhost') || host.includes('127.0.0.1')) {
+    console.log('[Pages/Client] Detecting subdomain from hostname:', host);
+    // En desarrollo local, usar 'demo' para cualquier IP o localhost
+    if (host.includes('localhost') || host.includes('127.0.0.1') || host.match(/^192\.168\.\d+\.\d+/)) {
+      console.log('[Pages/Client] Using demo subdomain for local development');
       return 'demo';
     }
     const parts = host.split('.');
     if (parts.length >= 3 && parts[0] !== 'www') {
+      console.log('[Pages/Client] Detected subdomain:', parts[0]);
       return parts[0];
     }
+    console.log('[Pages/Client] Using default demo subdomain');
     return 'demo';
   }
   return 'demo';
 };
 
 const subdomain = getSubdomain();
+
+console.log('[Pages] Fetching page:', {
+  slug,
+  subdomain,
+  apiBase: config.public.apiBase,
+  url: `/api/pages/public/${slug}`
+});
 
 // Fetch page data
 const { data: page, pending, error } = await useFetch(`/api/pages/public/${slug}`, {
@@ -132,6 +149,13 @@ const { data: page, pending, error } = await useFetch(`/api/pages/public/${slug}
   params: {
     tenant: subdomain
   }
+});
+
+console.log('[Pages] Fetch result:', {
+  hasPage: !!page.value,
+  hasError: !!error.value,
+  errorValue: error.value,
+  pageValue: page.value
 });
 
 // Set page meta
