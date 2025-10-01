@@ -366,26 +366,19 @@ const getImageUrl = (path: string) => {
   return path.startsWith('http') ? path : `${blogStore.imageBaseUrl}${path}`;
 };
 
-// Watchers
-watch([currentPage], () => {
-  if (category.value) {
-    fetchPosts();
-  }
-});
-
 // Lifecycle hooks
 onMounted(async () => {
   const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
-  
+
   // Cargar datos en paralelo
   await Promise.all([
     fetchCategory(slug),
     fetchAllCategories()
   ]);
-  
+
   // Parsear parámetros de la URL después de cargar la categoría
   parseRouteQuery();
-  
+
   // Cargar las publicaciones
   await fetchPosts();
 });
@@ -393,13 +386,13 @@ onMounted(async () => {
 // Watch for route changes (cuando cambia el slug de la categoría)
 watch(() => route.params.slug, async (newSlug) => {
   if (!newSlug) return;
-  
+
   const slug = Array.isArray(newSlug) ? newSlug[0] : newSlug;
-  
+
   // Resetear el estado
   currentPage.value = 1;
   category.value = null;
-  
+
   // Cargar la nueva categoría y sus publicaciones
   await fetchCategory(slug);
   parseRouteQuery();
@@ -407,7 +400,11 @@ watch(() => route.params.slug, async (newSlug) => {
 });
 
 // Watch for query changes (paginación)
-watch(() => route.query, () => {
-  parseRouteQuery();
+watch(() => route.query, async (newQuery, oldQuery) => {
+  // Solo ejecutar si la query realmente cambió
+  if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
+    parseRouteQuery();
+    await fetchPosts();
+  }
 }, { deep: true });
 </script>
