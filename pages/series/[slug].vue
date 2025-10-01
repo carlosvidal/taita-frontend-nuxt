@@ -176,9 +176,14 @@ const getSubdomain = () => {
 
 const subdomain = getSubdomain();
 
+// Normalize baseURL to ensure it ends with /api
+let baseURL = config.public.apiBase || 'https://taita-api.onrender.com/api';
+if (!baseURL.endsWith('/api')) {
+  baseURL = baseURL + '/api';
+}
+
 // Fetch series data
-const { data: series, pending, error } = await useFetch(`/series/public/${slug}`, {
-  baseURL: config.public.apiBase || 'https://taita-api.onrender.com',
+const { data: series, pending, error } = await useFetch(`${baseURL}/series/public/${slug}`, {
   headers: {
     'X-Taita-Subdomain': subdomain
   },
