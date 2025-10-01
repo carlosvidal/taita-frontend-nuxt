@@ -451,8 +451,10 @@ const fetchPosts = async () => {
       if ('data' in response) {
         posts.value = Array.isArray(response.data) ? response.data : [];
         totalItems.value = typeof response.total === 'number' ? response.total : 0;
-        currentPage.value = typeof response.current_page === 'number' ? response.current_page : 1;
-        perPage.value = typeof response.per_page === 'number' ? response.per_page : 10;
+        // No actualizar currentPage aquí para evitar loops
+        if (typeof response.per_page === 'number') {
+          perPage.value = response.per_page;
+        }
       } else if (Object.keys(response).length > 0) {
         // Handle case where response is an object but not in expected paginated format
         posts.value = [response];
@@ -567,10 +569,6 @@ const parseRouteQuery = () => {
   if (page) currentPage.value = parseInt(page as string, 10) || 1;
 };
 
-// Watchers
-watch([currentPage, searchQuery, sortBy], () => {
-  fetchPosts();});
-
 // Lifecycle hooks
 onMounted(async () => {
   parseRouteQuery();
@@ -590,8 +588,11 @@ onMounted(async () => {
 });
 
 // Watch for route changes
-watch(() => route.query, () => {
-  parseRouteQuery();
-  fetchPosts();
+watch(() => route.query, (newQuery, oldQuery) => {
+  // Solo ejecutar si la query realmente cambió
+  if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
+    parseRouteQuery();
+    fetchPosts();
+  }
 }, { deep: true });
 </script>
