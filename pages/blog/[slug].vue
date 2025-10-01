@@ -64,8 +64,8 @@
         
         <!-- Category and Tags -->
         <div class="flex flex-wrap gap-2 mb-8">
-          <nuxt-link 
-            v-if="post.category"
+          <nuxt-link
+            v-if="post.category && post.category.slug !== 'sin-categoria'"
             :to="`/category/${post.category.slug}`"
             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
           >

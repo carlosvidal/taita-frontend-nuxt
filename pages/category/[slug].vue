@@ -227,7 +227,10 @@ const allCategories = ref<Category[]>([]);
 const totalPages = computed(() => Math.ceil(totalItems.value / perPage.value));
 const otherCategories = computed(() => {
   if (!category.value) return [];
-  return allCategories.value.filter(cat => cat.id !== category.value?.id);
+  // Filtrar "Sin categoría" y la categoría actual
+  return allCategories.value.filter(cat =>
+    cat.id !== category.value?.id && cat.slug !== 'sin-categoria'
+  );
 });
 
 const visiblePages = computed(() => {
@@ -273,9 +276,15 @@ const visiblePages = computed(() => {
 // Métodos
 const fetchCategory = async (slug: string) => {
   try {
+    // Redirigir si se intenta acceder a "Sin categoría"
+    if (slug === 'sin-categoria') {
+      navigateTo('/blog');
+      return;
+    }
+
     const categories = await blogStore.fetchCategories();
     const foundCategory = categories.find(cat => cat.slug === slug);
-    
+
     if (foundCategory) {
       category.value = foundCategory;
       document.title = `${foundCategory.name} | Blog`;
