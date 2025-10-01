@@ -1,0 +1,436 @@
+/*
+ * Reading-optimized theme
+ * Inspired by WordPress Write theme, Kindle, and The New Yorker
+ */
+
+:root {
+  /* Typography - inspired by classic print design */
+  --font-serif: 'Lora', 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+
+  /* Type scale - The New Yorker inspired */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 1.0625rem;  /* 17px - optimal for reading */
+  --text-lg: 1.25rem;      /* 20px */
+  --text-xl: 1.5rem;       /* 24px */
+  --text-2xl: 1.875rem;    /* 30px */
+  --text-3xl: 2.25rem;     /* 36px */
+  --text-4xl: 3rem;        /* 48px */
+
+  /* Line heights - optimized for readability */
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 1.75;
+
+  /* Reading-optimized spacing */
+  --reading-width: 680px;     /* 65-75 characters per line */
+  --content-width: 1200px;
+  --spacing-paragraph: 1.5em;
+
+  /* Light mode - inspired by print */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #fafafa;
+  --color-bg-tertiary: #f5f5f5;
+
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #4a4a4a;
+  --color-text-tertiary: #767676;
+  --color-text-muted: #9a9a9a;
+
+  --color-accent: #0066cc;
+  --color-accent-hover: #0052a3;
+
+  --color-border: #e5e5e5;
+  --color-border-light: #f0f0f0;
+
+  /* Shadows - subtle depth */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode - Kindle-inspired */
+    --color-bg-primary: #1a1a1a;
+    --color-bg-secondary: #242424;
+    --color-bg-tertiary: #2d2d2d;
+
+    --color-text-primary: #e8e8e8;
+    --color-text-secondary: #b8b8b8;
+    --color-text-tertiary: #8a8a8a;
+    --color-text-muted: #666666;
+
+    --color-accent: #4d9fff;
+    --color-accent-hover: #6db1ff;
+
+    --color-border: #3a3a3a;
+    --color-border-light: #2d2d2d;
+  }
+}
+
+/*
+ * Reading-optimized typography
+ */
+
+.reading-content {
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-primary);
+  max-width: var(--reading-width);
+  margin-left: auto;
+  margin-right: auto;
+
+  /* Optimizations for readability */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+
+.reading-content p {
+  margin-bottom: var(--spacing-paragraph);
+  hyphens: none; /* Avoid hyphenation for cleaner reading */
+}
+
+.reading-content p:first-of-type::first-letter {
+  font-size: 3.5em;
+  line-height: 1;
+  float: left;
+  margin: 0.1em 0.1em 0 0;
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+/* Headings - New Yorker style */
+.reading-content h1,
+.reading-content h2,
+.reading-content h3,
+.reading-content h4 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  color: var(--color-text-primary);
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  letter-spacing: -0.01em;
+}
+
+.reading-content h1 {
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  margin-top: 0;
+}
+
+.reading-content h2 {
+  font-size: var(--text-3xl);
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.reading-content h3 {
+  font-size: var(--text-2xl);
+}
+
+.reading-content h4 {
+  font-size: var(--text-xl);
+}
+
+/* Links - subtle and elegant */
+.reading-content a {
+  color: var(--color-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.reading-content a:hover {
+  color: var(--color-accent-hover);
+  border-bottom-color: var(--color-accent-hover);
+}
+
+/* Lists */
+.reading-content ul,
+.reading-content ol {
+  margin: 1.5em 0;
+  padding-left: 2em;
+}
+
+.reading-content li {
+  margin-bottom: 0.5em;
+}
+
+.reading-content li > p {
+  margin-bottom: 0.75em;
+}
+
+/* Blockquotes - elegant pull quotes */
+.reading-content blockquote {
+  margin: 2em 0;
+  padding: 0 0 0 1.5em;
+  border-left: 3px solid var(--color-border);
+  font-style: italic;
+  color: var(--color-text-secondary);
+  font-size: 1.1em;
+}
+
+.reading-content blockquote p {
+  margin-bottom: 1em;
+}
+
+/* Code */
+.reading-content code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background-color: var(--color-bg-tertiary);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  color: var(--color-text-primary);
+}
+
+.reading-content pre {
+  background-color: var(--color-bg-tertiary);
+  border-radius: 6px;
+  padding: 1.5em;
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+
+.reading-content pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+
+/* Images - centered with captions */
+.reading-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 2em auto;
+  display: block;
+  border-radius: 4px;
+}
+
+.reading-content figure {
+  margin: 2em 0;
+}
+
+.reading-content figcaption {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-sans);
+  margin-top: 0.75em;
+  font-style: italic;
+}
+
+/* Horizontal rule */
+.reading-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 3em 0;
+}
+
+/* Tables */
+.reading-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2em 0;
+  font-size: var(--text-sm);
+}
+
+.reading-content th,
+.reading-content td {
+  padding: 0.75em;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reading-content th {
+  font-weight: 600;
+  background-color: var(--color-bg-secondary);
+  font-family: var(--font-sans);
+}
+
+/*
+ * Meta information - sans-serif for contrast
+ */
+
+.post-meta {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin-bottom: 2em;
+  padding-bottom: 1.5em;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.post-meta-item {
+  display: inline-block;
+  margin-right: 1.5em;
+}
+
+.post-meta-item:last-child {
+  margin-right: 0;
+}
+
+/*
+ * Category and tags - minimal badges
+ */
+
+.post-taxonomy {
+  margin: 2em 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.post-category,
+.post-tag {
+  display: inline-block;
+  padding: 0.25em 0.75em;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.post-category {
+  background-color: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+
+.post-category:hover {
+  opacity: 0.8;
+}
+
+.post-tag {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.post-tag:hover {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-text-tertiary);
+}
+
+/*
+ * Author bio - elegant card
+ */
+
+.author-bio {
+  margin-top: 4em;
+  padding-top: 3em;
+  border-top: 1px solid var(--color-border);
+}
+
+.author-bio-content {
+  display: flex;
+  gap: 1.5em;
+  align-items: flex-start;
+}
+
+.author-avatar {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.author-info {
+  flex: 1;
+}
+
+.author-name {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5em;
+}
+
+.author-description {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+/*
+ * Responsive adjustments
+ */
+
+@media (max-width: 768px) {
+  .reading-content {
+    font-size: 1rem; /* 16px on mobile */
+  }
+
+  .reading-content h1 {
+    font-size: var(--text-3xl);
+  }
+
+  .reading-content h2 {
+    font-size: var(--text-2xl);
+  }
+
+  .reading-content h3 {
+    font-size: var(--text-xl);
+  }
+
+  .reading-content p:first-of-type::first-letter {
+    font-size: 2.5em;
+  }
+
+  .author-bio-content {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+}
+
+/*
+ * Focus styles for accessibility
+ */
+
+.reading-content a:focus,
+.post-category:focus,
+.post-tag:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/*
+ * Print styles
+ */
+
+@media print {
+  .reading-content {
+    max-width: 100%;
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+  }
+
+  .reading-content a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  .post-meta,
+  .post-taxonomy,
+  .author-bio {
+    page-break-inside: avoid;
+  }
+}

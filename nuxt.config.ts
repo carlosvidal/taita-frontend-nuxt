@@ -97,9 +97,9 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' },
-        { 
-          rel: 'stylesheet', 
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap'
         },
       ],
       script: [
@@ -308,6 +308,7 @@ export default defineNuxtConfig({
   // CSS configuration
   css: [
     '~/assets/css/main.css',
+    '~/assets/css/reading-theme.css',
   ],
   
   // PostCSS configuration

@@ -1,12 +1,38 @@
 <template>
-  <div class="py-8">
+  <div class="min-h-screen bg-white dark:bg-gray-900 transition-colors">
+    <!-- Minimal header -->
+    <header class="border-b border-gray-200 dark:border-gray-800">
+      <div class="max-w-4xl mx-auto px-6 py-6">
+        <nav class="flex items-center justify-between">
+          <nuxt-link
+            to="/blog"
+            class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+          >
+            ← Back to blog
+          </nuxt-link>
+          <div class="flex items-center gap-4">
+            <button
+              @click="toggleDarkMode"
+              class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              <svg v-if="isDark" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />
+              </svg>
+              <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+              </svg>
+            </button>
+          </div>
+        </nav>
+      </div>
+    </header>
+
     <!-- Loading state -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="animate-pulse space-y-4">
-        <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
-        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto"></div>
-        <div class="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg mt-6"></div>
-        <div class="space-y-2 mt-6">
+    <div v-if="loading" class="max-w-4xl mx-auto px-6 py-16">
+      <div class="animate-pulse space-y-8">
+        <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+        <div class="space-y-3">
           <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
           <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
           <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
@@ -15,139 +41,142 @@
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="text-center py-12">
-      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-2xl mx-auto">
-        <h2 class="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error al cargar la publicación</h2>
-        <p class="text-red-600 dark:text-red-400">{{ error }}</p>
-        <button 
+    <div v-else-if="error" class="max-w-4xl mx-auto px-6 py-16">
+      <div class="text-center">
+        <p class="text-xl text-gray-600 dark:text-gray-400">{{ error }}</p>
+        <button
           @click="fetchPost"
-          class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          class="mt-4 px-6 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
         >
-          Reintentar
+          Try again
         </button>
       </div>
     </div>
 
     <!-- Post content -->
-    <div v-else-if="post" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <article class="prose dark:prose-invert max-w-none">
-        <!-- Featured Image -->
-        <div v-if="post.featured_image" class="mb-8 rounded-lg overflow-hidden">
-          <img 
-            :src="getImageUrl(post.featured_image)" 
-            :alt="post.title" 
-            class="w-full h-auto max-h-96 object-cover"
+    <article v-else-if="post" class="max-w-4xl mx-auto px-6 py-16">
+      <!-- Post title -->
+      <h1 class="reading-content text-5xl md:text-6xl font-bold mb-6">
+        {{ post.title }}
+      </h1>
+
+      <!-- Post meta -->
+      <div class="post-meta flex flex-wrap items-center gap-4 text-sm">
+        <div v-if="post.author" class="flex items-center gap-2">
+          <img
+            v-if="post.author.avatar"
+            :src="getImageUrl(post.author.avatar)"
+            :alt="post.author.name"
+            class="w-10 h-10 rounded-full object-cover"
           />
+          <span class="font-medium">{{ post.author.name }}</span>
         </div>
-        
-        <!-- Title -->
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-          {{ post.title }}
-        </h1>
-        
-        <!-- Meta -->
-        <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-8">
-          <div class="flex items-center">
-            <span class="mr-2">Por</span>
-            <div class="flex items-center">
-              <span v-if="post.author?.avatar" class="h-8 w-8 rounded-full overflow-hidden mr-2">
-                <img :src="getImageUrl(post.author.avatar)" :alt="post.author.name" class="h-full w-full object-cover">
-              </span>
-              <span class="font-medium text-gray-900 dark:text-gray-100">{{ post.author?.name || 'Anónimo' }}</span>
-            </div>
-            <span class="mx-2">•</span>
-            <time :datetime="post.published_at">{{ formatDate(post.published_at) }}</time>
-            <span v-if="post.reading_time" class="mx-2">•</span>
-            <span v-if="post.reading_time">{{ post.reading_time }} min de lectura</span>
+        <time :datetime="post.published_at" class="text-gray-600 dark:text-gray-400">
+          {{ formatDate(post.published_at) }}
+        </time>
+        <span v-if="post.reading_time" class="text-gray-600 dark:text-gray-400">
+          {{ post.reading_time }} min read
+        </span>
+      </div>
+
+      <!-- Featured image -->
+      <div v-if="post.featured_image" class="my-12">
+        <img
+          :src="getImageUrl(post.featured_image)"
+          :alt="post.title"
+          class="w-full h-auto rounded-lg"
+        />
+      </div>
+
+      <!-- Category and tags -->
+      <div v-if="post.category || post.tags?.length" class="post-taxonomy mb-12">
+        <nuxt-link
+          v-if="post.category && post.category.slug !== 'sin-categoria'"
+          :to="`/category/${post.category.slug}`"
+          class="post-category"
+        >
+          {{ post.category.name }}
+        </nuxt-link>
+        <nuxt-link
+          v-for="tag in post.tags"
+          :key="tag.id"
+          :to="`/tag/${tag.slug}`"
+          class="post-tag"
+        >
+          {{ tag.name }}
+        </nuxt-link>
+      </div>
+
+      <!-- Post content with reading-optimized styles -->
+      <div class="reading-content" v-html="post.content"></div>
+
+      <!-- Author bio -->
+      <div v-if="post.author?.bio" class="author-bio">
+        <div class="author-bio-content">
+          <img
+            v-if="post.author.avatar"
+            :src="getImageUrl(post.author.avatar)"
+            :alt="post.author.name"
+            class="author-avatar"
+          />
+          <div class="author-info">
+            <h3 class="author-name">About {{ post.author.name }}</h3>
+            <p class="author-description">{{ post.author.bio }}</p>
           </div>
-        </div>
-        
-        <!-- Category and Tags -->
-        <div class="flex flex-wrap gap-2 mb-8">
-          <nuxt-link
-            v-if="post.category && post.category.slug !== 'sin-categoria'"
-            :to="`/category/${post.category.slug}`"
-            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-          >
-            {{ post.category.name }}
-          </nuxt-link>
-          <nuxt-link 
-            v-for="tag in post.tags" 
-            :key="tag.id"
-            :to="`/tag/${tag.slug}`"
-            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-          >
-            {{ tag.name }}
-          </nuxt-link>
-        </div>
-        
-        <!-- Content -->
-        <div class="prose dark:prose-invert max-w-none" v-html="post.content"></div>
-        
-        <!-- Author Bio -->
-        <div v-if="post.author?.bio" class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-          <div class="flex items-center">
-            <div v-if="post.author?.avatar" class="h-16 w-16 rounded-full overflow-hidden mr-4">
-              <img :src="getImageUrl(post.author.avatar)" :alt="post.author.name" class="h-full w-full object-cover">
-            </div>
-            <div>
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white">Escrito por {{ post.author.name }}</h3>
-              <p class="mt-1 text-gray-600 dark:text-gray-300">{{ post.author.bio }}</p>
-              <div v-if="post.author?.social_links" class="mt-2 flex space-x-4">
-                <a 
-                  v-for="(url, platform) in post.author.social_links" 
-                  :key="platform"
-                  :href="url" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                >
-                  <span class="sr-only">{{ platform }}</span>
-                  <i :class="getSocialIcon(platform)" class="h-5 w-5"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </article>
-      
-      <!-- Navigation -->
-      <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-        <div class="flex justify-between">
-          <nuxt-link 
-            v-if="prevPost" 
-            :to="`/blog/${prevPost.slug}`"
-            class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            <ArrowLeftIcon class="h-4 w-4 mr-1" />
-            Anterior
-          </nuxt-link>
-          <div v-else></div>
-          
-          <nuxt-link 
-            v-if="nextPost" 
-            :to="`/blog/${nextPost.slug}`"
-            class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            Siguiente
-            <ArrowRightIcon class="h-4 w-4 ml-1" />
-          </nuxt-link>
-          <div v-else></div>
         </div>
       </div>
-    </div>
+
+      <!-- Navigation -->
+      <nav class="mt-16 pt-8 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex justify-between items-center">
+          <nuxt-link
+            v-if="prevPost"
+            :to="`/blog/${prevPost.slug}`"
+            class="group flex items-center gap-2 text-sm font-medium hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Previous post</span>
+          </nuxt-link>
+          <div v-else></div>
+
+          <nuxt-link
+            v-if="nextPost"
+            :to="`/blog/${nextPost.slug}`"
+            class="group flex items-center gap-2 text-sm font-medium hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <span>Next post</span>
+            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </nuxt-link>
+          <div v-else></div>
+        </div>
+      </nav>
+    </article>
+
+    <!-- Minimal footer -->
+    <footer class="border-t border-gray-200 dark:border-gray-800 mt-24">
+      <div class="max-w-4xl mx-auto px-6 py-8">
+        <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+          © {{ new Date().getFullYear() }} All rights reserved.
+        </p>
+      </div>
+    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/vue/24/outline';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBlogStore } from '~/stores/blog';
-import { ref, onMounted, computed } from 'vue';
+import { useColorMode } from '@vueuse/core';
 
 const route = useRoute();
 const router = useRouter();
 const blogStore = useBlogStore();
+const colorMode = useColorMode();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -156,14 +185,17 @@ const prevPost = ref<any>(null);
 const nextPost = ref<any>(null);
 
 const slug = computed(() => route.params.slug as string);
+const isDark = computed(() => colorMode.value === 'dark');
+
+const toggleDarkMode = () => {
+  colorMode.value = colorMode.value === 'dark' ? 'light' : 'dark';
+};
 
 const getImageUrl = (path: string) => {
   if (!path) return '';
-  // Si la URL ya es absoluta (Cloudinary u otro CDN), devolverla tal cual
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  // Si es una ruta relativa, construir la URL completa con la API
   const apiBase = 'https://taita-api.onrender.com';
   return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
 };
@@ -172,88 +204,82 @@ const formatDate = (dateString: string) => {
   if (!dateString) return '';
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('es-ES', {
+  return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 };
 
-const getSocialIcon = (platform: string) => {
-  const icons: Record<string, string> = {
-    twitter: 'i-mdi-twitter',
-    facebook: 'i-mdi-facebook',
-    instagram: 'i-mdi-instagram',
-    linkedin: 'i-mdi-linkedin',
-    github: 'i-mdi-github',
-    website: 'i-mdi-web',
-  };
-  return icons[platform.toLowerCase()] || 'i-mdi-link';
-};
-
 const fetchPost = async () => {
   try {
     loading.value = true;
     error.value = null;
-    
-    // Fetch the post
+
     const postData = await blogStore.fetchPost(slug.value);
     if (!postData) {
-      throw new Error('No se encontró la publicación');
+      throw new Error('Post not found');
     }
-    
+
     post.value = postData;
-    
-    // Set page title and meta tags
+
+    // Set page title
     useHead({
       title: post.value.meta_title || post.value.title,
       meta: [
         { name: 'description', content: post.value.meta_description || post.value.excerpt },
-        // Add Open Graph meta tags for social sharing
         { property: 'og:title', content: post.value.meta_title || post.value.title },
         { property: 'og:description', content: post.value.meta_description || post.value.excerpt },
         { property: 'og:type', content: 'article' },
-        { property: 'og:url', content: `https://${window.location.host}${route.fullPath}` },
         { property: 'og:image', content: post.value.featured_image ? getImageUrl(post.value.featured_image) : '' },
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: post.value.meta_title || post.value.title },
-        { name: 'twitter:description', content: post.value.meta_description || post.value.excerpt },
-        { name: 'twitter:image', content: post.value.featured_image ? getImageUrl(post.value.featured_image) : '' },
       ],
     });
-    
-    // Fetch previous and next posts (you'll need to implement these methods in your store)
-    // For now, we'll just set them to null
-    prevPost.value = null;
-    nextPost.value = null;
-    
+
   } catch (err: any) {
     console.error('Error fetching post:', err);
-    error.value = err.message || 'No se pudo cargar la publicación. Por favor, intente nuevamente más tarde.';
+    error.value = err.message || 'Failed to load post';
   } finally {
     loading.value = false;
   }
 };
 
-// Watch for route changes
 watch(() => route.params.slug, async (newSlug) => {
   if (newSlug) {
     await fetchPost();
   }
 });
 
-// Fetch post on component mount
 onMounted(async () => {
   if (slug.value) {
     await fetchPost();
   } else {
-    error.value = 'No se especificó un slug de publicación';
+    error.value = 'No post slug specified';
     loading.value = false;
   }
 });
 </script>
 
 <style scoped>
-/* Add any custom styles here */
+/* Smooth transitions */
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Ensure proper spacing in the reading content */
+:deep(.reading-content) {
+  /* Content styles are inherited from reading-theme.css */
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :deep(.reading-content code) {
+    background-color: rgb(45, 45, 45);
+  }
+
+  :deep(.reading-content pre) {
+    background-color: rgb(29, 29, 29);
+  }
+}
 </style>
