@@ -133,16 +133,21 @@ const getSubdomain = () => {
 
 const subdomain = getSubdomain();
 
+// Construir URL base asegurando que no se duplique /api
+const apiBase = config.public.apiBase || 'https://taita-api.onrender.com';
+const baseURL = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+
 console.log('[Pages] Fetching page:', {
   slug,
   subdomain,
-  apiBase: config.public.apiBase,
-  url: `/api/pages/public/${slug}`
+  apiBase,
+  baseURL,
+  fullUrl: `${baseURL}/pages/public/${slug}`
 });
 
 // Fetch page data
-const { data: page, pending, error } = await useFetch(`/api/pages/public/${slug}`, {
-  baseURL: config.public.apiBase || 'https://taita-api.onrender.com',
+const { data: page, pending, error } = await useFetch(`/pages/public/${slug}`, {
+  baseURL: baseURL,
   headers: {
     'X-Taita-Subdomain': subdomain
   },
