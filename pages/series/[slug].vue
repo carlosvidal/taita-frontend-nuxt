@@ -122,7 +122,8 @@
 <script setup lang="ts">
 // Use reading layout (no header/footer from default layout)
 definePageMeta({
-  layout: 'reading'
+  layout: 'reading',
+  key: route => `/series/${route.params.slug}`
 });
 
 const route = useRoute();

@@ -205,6 +205,11 @@
 </template>
 
 <script setup lang="ts">
+// Use unique key to prevent component reuse when navigating between dynamic routes
+definePageMeta({
+  key: route => `/category/${route.params.slug}`
+});
+
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/vue/24/outline';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
