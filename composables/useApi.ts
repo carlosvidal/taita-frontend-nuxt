@@ -90,13 +90,21 @@ export const useApi = () => {
       const subdomain = process.client ? window.location.hostname.split('.')[0] : '';
       const headers: Record<string, string> = {};
 
+      console.log('[useApi.getMenu] Full hostname:', process.client ? window.location.hostname : 'SSR');
+      console.log('[useApi.getMenu] Detected subdomain:', subdomain);
+      console.log('[useApi.getMenu] Will send X-Taita-Subdomain header?', subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain));
+
       if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
         headers['X-Taita-Subdomain'] = subdomain;
+        console.log('[useApi.getMenu] Adding X-Taita-Subdomain header:', subdomain);
+      } else {
+        console.log('[useApi.getMenu] NOT adding X-Taita-Subdomain header. Subdomain was:', subdomain);
       }
 
-      console.log('[useApi] Fetching menu with subdomain:', subdomain);
+      console.log('[useApi.getMenu] Final headers:', headers);
+      console.log('[useApi.getMenu] Fetching from endpoint: /menu/public');
       const result = await fetchFromApi('/menu/public', { headers });
-      console.log('[useApi] Menu fetched successfully:', result);
+      console.log('[useApi.getMenu] Menu API returned:', result);
       return result;
     } catch (error) {
       console.error('[useApi] Error fetching menu:', error);
