@@ -147,10 +147,11 @@ onMounted(async () => {
 // Cleanup
 onBeforeUnmount(() => {
   if (process.server) return;
-  
+
   // Cleanup event listeners if needed
   window.removeEventListener('error', handleError);
-  window.removeEventListener('unhandledrejection', handleError);n});
+  window.removeEventListener('unhandledrejection', handleError);
+});
 </script>
 
 <style>
