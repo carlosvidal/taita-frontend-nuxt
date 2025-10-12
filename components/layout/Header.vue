@@ -4,8 +4,8 @@
       <div class="flex justify-between h-16">
         <!-- Logo -->
         <div class="flex-shrink-0 flex items-center">
-          <NuxtLink to="/" class="text-xl font-bold text-gray-900 dark:text-white">
-            Taita Blog
+          <NuxtLink to="/" class="flex items-center">
+            <img src="~/assets/taita-logo.svg" alt="Taita" class="h-8 w-auto" />
           </NuxtLink>
         </div>
 
