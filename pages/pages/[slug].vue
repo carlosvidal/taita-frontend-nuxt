@@ -15,22 +15,9 @@
     </div>
 
     <!-- Page content -->
-    <article v-else-if="page" class="reading-container">
-      <!-- Header -->
-      <header class="reading-header">
-        <div class="reading-header-content">
-          <NuxtLink to="/" class="back-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Inicio
-          </NuxtLink>
-        </div>
-      </header>
-
+    <article v-else-if="page" class="py-8">
       <!-- Main content -->
-      <main class="reading-main">
+      <div class="max-w-4xl mx-auto">
         <!-- Featured Image -->
         <div v-if="page.image" class="featured-image-container">
           <img :src="getImageUrl(page.image)" :alt="page.title" class="featured-image" />
@@ -54,23 +41,13 @@
 
         <!-- Content -->
         <div class="reading-content" v-html="page.content"></div>
-      </main>
-
-      <!-- Footer -->
-      <footer class="reading-footer">
-        <div class="footer-content">
-          <p>&copy; {{ new Date().getFullYear() }} {{ blogName }}. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+      </div>
     </article>
   </div>
 </template>
 
 <script setup lang="ts">
-// Use reading layout (no header/footer from default layout)
-definePageMeta({
-  layout: 'reading'
-});
+// No custom layout needed - will use default layout with header and footer
 
 const route = useRoute();
 const slug = route.params.slug as string;

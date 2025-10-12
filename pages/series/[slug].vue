@@ -15,22 +15,9 @@
     </div>
 
     <!-- Series content -->
-    <article v-else-if="series" class="reading-container">
-      <!-- Header -->
-      <header class="reading-header">
-        <div class="reading-header-content">
-          <NuxtLink to="/blog" class="back-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Volver al blog
-          </NuxtLink>
-        </div>
-      </header>
-
+    <article v-else-if="series" class="py-8">
       <!-- Main content -->
-      <main class="reading-main">
+      <div class="max-w-4xl mx-auto">
         <!-- Cover Image -->
         <div v-if="series.cover_image || series.coverImage" class="featured-image-container">
           <img :src="getImageUrl(series.cover_image || series.coverImage)" :alt="series.title"
@@ -107,22 +94,14 @@
         <div v-else class="empty-state">
           <p>Esta serie aún no tiene artículos publicados.</p>
         </div>
-      </main>
-
-      <!-- Footer -->
-      <footer class="reading-footer">
-        <div class="footer-content">
-          <p>&copy; {{ new Date().getFullYear() }} {{ blogName }}. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+      </div>
     </article>
   </div>
 </template>
 
 <script setup lang="ts">
-// Use reading layout (no header/footer from default layout)
+// Use unique key to prevent component reuse
 definePageMeta({
-  layout: 'reading',
   key: route => `/series/${route.params.slug}`
 });
 
