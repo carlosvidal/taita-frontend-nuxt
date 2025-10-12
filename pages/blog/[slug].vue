@@ -168,6 +168,10 @@
 </template>
 
 <script setup lang="ts">
+// Use reading layout (no header/footer from default layout)
+definePageMeta({
+  layout: 'reading'
+});
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBlogStore } from '~/stores/blog';

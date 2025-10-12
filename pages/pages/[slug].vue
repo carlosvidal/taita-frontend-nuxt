@@ -67,6 +67,11 @@
 </template>
 
 <script setup lang="ts">
+// Use reading layout (no header/footer from default layout)
+definePageMeta({
+  layout: 'reading'
+});
+
 const route = useRoute();
 const slug = route.params.slug as string;
 const config = useRuntimeConfig();
