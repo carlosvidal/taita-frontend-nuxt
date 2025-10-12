@@ -390,6 +390,8 @@ onMounted(async () => {
 
 // Watch for route changes (cuando cambia el slug de la categoría)
 watch(() => route.params.slug, async (newSlug) => {
+  // Only execute if we're on the category route
+  if (!route.path.startsWith('/category/')) return;
   if (!newSlug) return;
 
   const slug = Array.isArray(newSlug) ? newSlug[0] : newSlug;
