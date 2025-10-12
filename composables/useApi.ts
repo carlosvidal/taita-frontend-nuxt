@@ -91,6 +91,23 @@ export const useApi = () => {
     return fetchFromApi('/tags');
   };
 
+  const getMenu = async () => {
+    try {
+      // Add subdomain to the request if available
+      const subdomain = process.client ? window.location.hostname.split('.')[0] : '';
+      const headers: Record<string, string> = {};
+
+      if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
+        headers['X-Taita-Subdomain'] = subdomain;
+      }
+
+      return await fetchFromApi('/public/menu', { headers });
+    } catch (error) {
+      console.error('Error fetching menu:', error);
+      throw error;
+    }
+  };
+
   const getPostsByCategory = async (categorySlug: string) => {
     return fetchFromApi(`/categories/${categorySlug}/posts`);
   };
@@ -148,19 +165,22 @@ export const useApi = () => {
   return {
     // Core methods
     fetchFromApi,
-    
+
     // Post methods
     getPosts,
     getPost,
-    
+
     // Category methods
     getCategories,
     getCategory,
-    
+
     // Tag methods
     getTags,
     getTag,
-    
+
+    // Menu methods
+    getMenu,
+
     // Relationship methods
     getPostsByCategory,
     getPostsByTag,

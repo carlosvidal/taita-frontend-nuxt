@@ -11,22 +11,14 @@
 
         <!-- Menú de navegación -->
         <nav class="hidden sm:ml-6 sm:flex sm:space-x-8">
-          <NuxtLink 
-            to="/" 
+          <NuxtLink
+            v-for="item in menuItems"
+            :key="item.id"
+            :to="item.url"
             class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
             active-class="border-indigo-500 text-gray-900 dark:text-white"
           >
-            Inicio
-          </NuxtLink>
-          
-          <NuxtLink 
-            v-for="category in categories" 
-            :key="category.id"
-            :to="`/category/${category.slug}`"
-            class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            active-class="border-indigo-500 text-gray-900 dark:text-white"
-          >
-            {{ category.name }}
+            {{ item.label }}
           </NuxtLink>
         </nav>
 
@@ -68,29 +60,20 @@
     </div>
 
     <!-- Menú móvil -->
-    <div 
-      v-show="isMobileMenuOpen" 
+    <div
+      v-show="isMobileMenuOpen"
       class="sm:hidden"
     >
       <div class="pt-2 pb-3 space-y-1">
-        <NuxtLink 
-          to="/" 
-          class="bg-indigo-50 border-indigo-500 text-indigo-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium dark:bg-gray-700 dark:text-white"
-          active-class="bg-indigo-50"
-          @click="isMobileMenuOpen = false"
-        >
-          Inicio
-        </NuxtLink>
-        
-        <NuxtLink 
-          v-for="category in categories" 
-          :key="`mobile-${category.id}`"
-          :to="`/category/${category.slug}`"
+        <NuxtLink
+          v-for="item in menuItems"
+          :key="`mobile-${item.id}`"
+          :to="item.url"
           class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
           active-class="bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-gray-700"
           @click="isMobileMenuOpen = false"
         >
-          {{ category.name }}
+          {{ item.label }}
         </NuxtLink>
       </div>
     </div>
@@ -99,19 +82,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useBlogStore } from '~/stores/blog';
 
-const blogStore = useBlogStore();
 const isMobileMenuOpen = ref(false);
-
-// Obtener categorías al montar el componente
-const categories = ref([]);
+const menuItems = ref([]);
 
 onMounted(async () => {
   try {
-    categories.value = await blogStore.fetchCategories();
+    const api = useApi();
+    menuItems.value = await api.getMenu();
+    console.log('Menu items loaded:', menuItems.value);
   } catch (error) {
-    console.error('Error al cargar las categorías:', error);
+    console.error('Error loading menu:', error);
+    menuItems.value = [];
   }
 });
 </script>
