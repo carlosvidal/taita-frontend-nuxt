@@ -101,9 +101,12 @@ export const useApi = () => {
         headers['X-Taita-Subdomain'] = subdomain;
       }
 
-      return await fetchFromApi('/public/menu', { headers });
+      console.log('[useApi] Fetching menu with subdomain:', subdomain);
+      const result = await fetchFromApi('/menu/public', { headers });
+      console.log('[useApi] Menu fetched successfully:', result);
+      return result;
     } catch (error) {
-      console.error('Error fetching menu:', error);
+      console.error('[useApi] Error fetching menu:', error);
       throw error;
     }
   };

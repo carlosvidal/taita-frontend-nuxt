@@ -87,12 +87,16 @@ const isMobileMenuOpen = ref(false);
 const menuItems = ref([]);
 
 onMounted(async () => {
+  console.log('[Header] Component mounted, fetching menu...');
   try {
     const api = useApi();
-    menuItems.value = await api.getMenu();
-    console.log('Menu items loaded:', menuItems.value);
+    console.log('[Header] useApi initialized');
+    const result = await api.getMenu();
+    console.log('[Header] Menu API response:', result);
+    menuItems.value = result || [];
+    console.log('[Header] Menu items set:', menuItems.value.length, 'items');
   } catch (error) {
-    console.error('Error loading menu:', error);
+    console.error('[Header] Error loading menu:', error);
     menuItems.value = [];
   }
 });
