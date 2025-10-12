@@ -5,7 +5,7 @@
         <!-- Logo -->
         <div class="flex-shrink-0 flex items-center">
           <NuxtLink to="/" class="text-xl font-bold text-gray-900 dark:text-white">
-            Taita Blog
+            {{ blogName || 'Blog' }}
           </NuxtLink>
         </div>
 
@@ -82,15 +82,23 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useBlogStore } from '~/stores/blog';
 
 const isMobileMenuOpen = ref(false);
 const menuItems = ref([]);
+const blogStore = useBlogStore();
+const blogName = ref('');
 
 onMounted(async () => {
   console.log('[Header] Component mounted, fetching menu...');
   try {
     const api = useApi();
     console.log('[Header] useApi initialized');
+
+    // Get blog settings for the name
+    const settings = await blogStore.fetchSettings();
+    blogName.value = settings?.title || settings?.name || 'Blog';
+
     const result = await api.getMenu();
     console.log('[Header] Menu API response:', result);
     menuItems.value = result || [];
