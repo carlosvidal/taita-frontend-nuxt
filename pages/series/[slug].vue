@@ -182,8 +182,16 @@ if (!baseURL.endsWith('/api')) {
   baseURL = baseURL + '/api';
 }
 
+const requestUrl = `${baseURL}/series/public/${slug}`;
+console.log('[series/slug] Fetching series:', {
+  slug,
+  subdomain,
+  requestUrl,
+  headers: { 'X-Taita-Subdomain': subdomain }
+});
+
 // Fetch series data
-const { data: series, pending, error } = await useFetch(`${baseURL}/series/public/${slug}`, {
+const { data: series, pending, error } = await useFetch(requestUrl, {
   headers: {
     'X-Taita-Subdomain': subdomain
   },
@@ -191,6 +199,15 @@ const { data: series, pending, error } = await useFetch(`${baseURL}/series/publi
     tenant: subdomain
   }
 });
+
+if (error.value) {
+  console.error('[series/slug] Error fetching series:', {
+    error: error.value,
+    slug,
+    subdomain,
+    requestUrl
+  });
+}
 
 // Set page meta
 if (series.value) {
