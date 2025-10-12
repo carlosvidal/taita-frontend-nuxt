@@ -16,12 +16,6 @@ export const useApi = () => {
         ...options.headers,
       };
 
-      // Añadir tenant al header si está disponible
-      const subdomain = process.client ? window.location.hostname.split('.')[0] : '';
-      if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
-        headers['X-Tenant'] = subdomain;
-      }
-
       // Añadir token de autenticación si está disponible
       const authStore = useAuthStore();
       if (authStore.token) {
