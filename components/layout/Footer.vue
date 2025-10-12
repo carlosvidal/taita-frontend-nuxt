@@ -77,6 +77,19 @@
           </a>
         </div>
       </div>
+
+      <!-- Powered by Taita -->
+      <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <a
+          href="https://taita.blog"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+        >
+          <span>Powered by</span>
+          <img src="~/assets/taita-logo.svg" alt="Taita.blog" class="h-5 w-auto opacity-70 hover:opacity-100 transition-opacity" />
+        </a>
+      </div>
     </div>
   </footer>
 </template>
