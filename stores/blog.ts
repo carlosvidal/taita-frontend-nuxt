@@ -1030,10 +1030,11 @@ const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?tenant=${safeTenan
 
     try {
       const safeTenant = /^192\./.test(currentTenant.value) ? 'demo' : (currentTenant.value || 'demo');
-      const response = await $fetch(`${apiBaseUrl.value}/settings/public?tenant=${safeTenant}`, {
+      const response = await $fetch(`${apiBaseUrl.value}/settings/public`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'X-Taita-Subdomain': safeTenant,
         }
       });
       return response;

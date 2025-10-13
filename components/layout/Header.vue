@@ -97,7 +97,12 @@ onMounted(async () => {
 
     // Get blog settings for the name
     const settings = await blogStore.fetchSettings();
+    console.log('[Header] Settings received:', settings);
+    console.log('[Header] Settings.title:', settings?.title);
+    console.log('[Header] Settings.name:', settings?.name);
+
     blogName.value = settings?.title || settings?.name || 'Blog';
+    console.log('[Header] Blog name set to:', blogName.value);
 
     const result = await api.getMenu();
     console.log('[Header] Menu API response:', result);
