@@ -25,14 +25,16 @@ onMounted(async () => {
     const settings = await blogStore.fetchSettings();
     blogTitle.value = settings?.title || settings?.name || 'Blog';
 
-    // Update page title
-    useHead({
-      title: blogTitle.value,
-      titleTemplate: '%s',
-      meta: [
-        { name: 'description', content: settings?.description || `Bienvenido a ${blogTitle.value}` }
-      ]
-    });
+    // Update page title and meta tags
+    if (typeof document !== 'undefined') {
+      document.title = blogTitle.value;
+
+      // Update meta description
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', settings?.description || `Bienvenido a ${blogTitle.value}`);
+      }
+    }
   } catch (error) {
     console.error('[Layout] Error loading blog settings:', error);
   }
