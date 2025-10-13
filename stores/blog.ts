@@ -1017,6 +1017,35 @@ const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?tenant=${safeTenan
     }
   };
 
+  // Fetch blog settings
+  const fetchSettings = async () => {
+    // Use static data in static mode
+    if (isStaticMode) {
+      return {
+        title: 'Mi Blog',
+        name: 'Mi Blog',
+        description: 'Un blog increíble',
+      };
+    }
+
+    try {
+      const safeTenant = /^192\./.test(currentTenant.value) ? 'demo' : (currentTenant.value || 'demo');
+      const response = await $fetch(`${apiBaseUrl.value}/settings/public?tenant=${safeTenant}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+      return response;
+    } catch (err: any) {
+      console.error('[BlogStore] Error fetching settings:', err);
+      return {
+        title: 'Blog',
+        name: 'Blog',
+      };
+    }
+  };
+
   // Set tenant and update API base URL
   const setTenant = (tenant: string) => {
     if (!process.client) return;
@@ -1051,8 +1080,9 @@ const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?tenant=${safeTenan
     fetchPostsByCategory,
     fetchPostsByTag,
     searchPosts,
+    fetchSettings,
     setTenant,
-    
+
     // Helpers
     getImageUrl,
     formatDate

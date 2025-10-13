@@ -14,8 +14,29 @@
 </template>
 
 <script setup lang="ts">
-// Import types if needed
-// No additional setup needed as Header and Footer components handle their own data
+import { ref, onMounted } from 'vue';
+import { useBlogStore } from '~/stores/blog';
+
+const blogStore = useBlogStore();
+const blogTitle = ref('Blog');
+
+onMounted(async () => {
+  try {
+    const settings = await blogStore.fetchSettings();
+    blogTitle.value = settings?.title || settings?.name || 'Blog';
+
+    // Update page title
+    useHead({
+      title: blogTitle.value,
+      titleTemplate: '%s',
+      meta: [
+        { name: 'description', content: settings?.description || `Bienvenido a ${blogTitle.value}` }
+      ]
+    });
+  } catch (error) {
+    console.error('[Layout] Error loading blog settings:', error);
+  }
+});
 </script>
 
 <style>
