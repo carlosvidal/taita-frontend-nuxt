@@ -121,9 +121,15 @@ onMounted(async () => {
   try {
     // Get blog settings
     const settings = await blogStore.fetchSettings();
+    console.log('[Footer] Settings received:', settings);
+    console.log('[Footer] socialNetworks:', settings?.socialNetworks);
+    console.log('[Footer] socialNetworks type:', typeof settings?.socialNetworks);
+
     blogName.value = settings?.title || settings?.name || '';
     blogDescription.value = settings?.description || '';
     socialNetworks.value = settings?.socialNetworks || null;
+
+    console.log('[Footer] socialNetworks.value set to:', socialNetworks.value);
 
     // Get categories
     categories.value = await blogStore.fetchCategories();
