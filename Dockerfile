@@ -34,8 +34,8 @@ WORKDIR /app
 # Copiar package*.json para instalar solo dependencias de producción
 COPY package*.json ./
 
-# Instalar solo dependencias de producción
-RUN npm ci --only=production && \
+# Instalar solo dependencias de producción (ignorar scripts)
+RUN npm ci --only=production --ignore-scripts && \
     npm cache clean --force
 
 # Copiar archivos compilados desde builder
