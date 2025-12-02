@@ -48,17 +48,17 @@ RUN addgroup -g 1001 -S nodejs && \
 
 USER nuxt
 
-# Exponer puerto
-EXPOSE 3000
-
 # Variables de entorno por defecto
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+# Exponer puerto (usar variable de entorno)
+EXPOSE ${PORT}
+
+# Health check - usar variable PORT o fallback a 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD node -e "const port = process.env.PORT || 3000; require('http').get('http://localhost:' + port, (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Comando de inicio
 CMD ["node", ".output/server/index.mjs"]
