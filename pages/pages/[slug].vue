@@ -62,7 +62,7 @@ const getImageUrl = (path: string) => {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path; // Cloudinary URLs
   }
-  const apiBase = config.public.apiBase || 'https://taita-api.onrender.com';
+  const apiBase = config.public.apiBase || 'https://backend.taita.blog';
   return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
@@ -116,7 +116,7 @@ const getSubdomain = () => {
 const subdomain = getSubdomain();
 
 // Construir URL base asegurando que no se duplique /api
-const apiBase = config.public.apiBase || 'https://taita-api.onrender.com';
+const apiBase = config.public.apiBase || 'https://backend.taita.blog';
 const baseURL = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
 console.log('[Pages] Fetching page:', {

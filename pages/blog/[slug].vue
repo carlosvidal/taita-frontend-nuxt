@@ -154,7 +154,7 @@ const getImageUrl = (path: string) => {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  const apiBase = 'https://taita-api.onrender.com';
+  const apiBase = 'https://backend.taita.blog';
   return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 

@@ -61,9 +61,9 @@ interface PaginatedResponse<T> {
 
 // Default values for server-side rendering and static generation
 const defaultConfig = {
-  apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://taita-api.onrender.com/api',
-  apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://taita-api.onrender.com/api',
-  imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL || 'https://taita-api.onrender.com',
+  apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://backend.taita.blog/api',
+  apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://backend.taita.blog/api',
+  imageUrl: process.env.NUXT_PUBLIC_IMAGE_URL || 'https://backend.taita.blog',
   siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'Taita Blog',
   tenantDomain: process.env.NUXT_PUBLIC_TENANT_DOMAIN || 'taita',
   tenant: process.env.NUXT_PUBLIC_TENANT || 'taita',

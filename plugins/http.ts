@@ -61,7 +61,7 @@ export default defineNuxtPlugin<PluginInjects>((nuxtApp) => {
   const authStore = useAuthStore();
   
   // URL base de la API
-  const baseURL = (config.public.apiBaseUrl as string) || 'https://taita-api.onrender.com/api';
+  const baseURL = (config.public.apiBaseUrl as string) || 'https://backend.taita.blog/api';
   
   // Return existing instance if available
   if (httpInstance) {

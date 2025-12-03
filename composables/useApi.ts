@@ -4,8 +4,8 @@ import { useRuntimeConfig } from '#app';
 export const useApi = () => {
   const config = useRuntimeConfig();
   const { $http } = useNuxtApp();
-  const baseURL = config.public.apiBaseUrl || 'https://taita-api.onrender.com/api';
-  const imageBaseUrl = config.public.imageBaseUrl || 'https://taita-api.onrender.com';
+  const baseURL = config.public.apiBaseUrl || 'https://backend.taita.blog/api';
+  const imageBaseUrl = config.public.imageBaseUrl || 'https://backend.taita.blog';
 
   // Función genérica para hacer peticiones
   const fetchFromApi = async (endpoint: string, options: any = {}) => {

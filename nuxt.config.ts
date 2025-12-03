@@ -250,7 +250,7 @@ export default defineNuxtConfig({
         const { ofetch } = await import('ofetch')
         
         // Intentar obtener los posts de la API
-        const response = await ofetch('https://taita-api.onrender.com/api/posts?fields=slug&limit=50', {
+        const response = await ofetch('https://backend.taita.blog/api/posts?fields=slug&limit=50', {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -323,9 +323,9 @@ export default defineNuxtConfig({
   
   // Image module configuration
   image: {
-    domains: ['taita-api.onrender.com'],
+    domains: ['backend.taita.blog'],
     alias: {
-      cms: 'https://taita-api.onrender.com'
+      cms: 'https://backend.taita.blog'
     },
     screens: {
       xs: 320,
