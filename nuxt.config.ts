@@ -115,9 +115,12 @@ export default defineNuxtConfig({
 
   // Route rules
   routeRules: {
-    '/blog/**': { swr: 3600 },
-    '/api/**': { cors: true, headers: { 'access-control-allow-methods': 'GET,POST,PUT,DELETE,OPTIONS' } },
-    '/_nuxt/**': { headers: { 'cache-control': 'public, max-age=31536000' } },
+    '/': { swr: 300 },                // Homepage: cached 5 min
+    '/blog': { swr: 300 },            // Blog listing: cached 5 min
+    '/blog/**': { swr: 3600 },        // Post detail: cached 1 hour
+    '/category/**': { swr: 600 },     // Category pages: cached 10 min
+    '/tag/**': { swr: 600 },          // Tag pages: cached 10 min
+    '/_nuxt/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/images/**': { headers: { 'cache-control': 'public, max-age=31536000' } },
     '/favicon.ico': { headers: { 'cache-control': 'public, max-age=31536000' } },
   },
@@ -158,9 +161,12 @@ export default defineNuxtConfig({
     },
   },
 
-  // Sitemap
+  // Sitemap - fetches published posts from API
   sitemap: {
     siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://taita.blog',
+    sources: [
+      '/api/__sitemap__/urls',
+    ],
   },
 
   // Schema.org
