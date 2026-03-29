@@ -132,20 +132,10 @@
 </template>
 
 <script setup lang="ts">
-// No custom layout needed - will use default layout with header and footer
-import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import { useBlogStore } from '~/stores/blog';
 
 const route = useRoute();
-const router = useRouter();
 const blogStore = useBlogStore();
-
-const loading = ref(true);
-const error = ref<string | null>(null);
-const post = ref<any>(null);
-const prevPost = ref<any>(null);
-const nextPost = ref<any>(null);
 
 const slug = computed(() => route.params.slug as string);
 
@@ -169,52 +159,34 @@ const formatDate = (dateString: string) => {
   });
 };
 
+// useAsyncData runs on both server and client
+const { data: post, pending: loading, error: fetchError } = await useAsyncData(
+  `post-${slug.value}`,
+  () => blogStore.fetchPost(slug.value),
+  { watch: [slug] }
+);
+
+const error = computed(() => fetchError.value?.message || null);
+
+const prevPost = ref<any>(null);
+const nextPost = ref<any>(null);
+
+// SEO meta tags (works in SSR)
+useHead({
+  title: () => post.value?.meta_title || post.value?.title || 'Post',
+  meta: [
+    { name: 'description', content: () => post.value?.meta_description || post.value?.excerpt || '' },
+    { property: 'og:title', content: () => post.value?.meta_title || post.value?.title || '' },
+    { property: 'og:description', content: () => post.value?.meta_description || post.value?.excerpt || '' },
+    { property: 'og:type', content: 'article' },
+    { property: 'og:image', content: () => post.value?.featured_image ? getImageUrl(post.value.featured_image) : '' },
+  ],
+});
+
+// Keep fetchPost for the retry button in the template
 const fetchPost = async () => {
-  try {
-    loading.value = true;
-    error.value = null;
-
-    const postData = await blogStore.fetchPost(slug.value);
-    if (!postData) {
-      throw new Error('Post not found');
-    }
-
-    post.value = postData;
-
-    // Set page title
-    useHead({
-      title: post.value.meta_title || post.value.title,
-      meta: [
-        { name: 'description', content: post.value.meta_description || post.value.excerpt },
-        { property: 'og:title', content: post.value.meta_title || post.value.title },
-        { property: 'og:description', content: post.value.meta_description || post.value.excerpt },
-        { property: 'og:type', content: 'article' },
-        { property: 'og:image', content: post.value.featured_image ? getImageUrl(post.value.featured_image) : '' },
-      ],
-    });
-
-  } catch (err: any) {
-    console.error('Error fetching post:', err);
-    error.value = err.message || 'Failed to load post';
-  } finally {
-    loading.value = false;
-  }
+  await refreshNuxtData(`post-${slug.value}`);
 };
-
-watch(() => route.params.slug, async (newSlug) => {
-  if (newSlug) {
-    await fetchPost();
-  }
-});
-
-onMounted(async () => {
-  if (slug.value) {
-    await fetchPost();
-  } else {
-    error.value = 'No post slug specified';
-    loading.value = false;
-  }
-});
 </script>
 
 <style scoped>

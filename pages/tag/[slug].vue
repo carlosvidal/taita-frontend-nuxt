@@ -223,146 +223,21 @@
 
 <script setup lang="ts">
 import { ArrowLongLeftIcon, ArrowLongRightIcon, TagIcon } from '@heroicons/vue/24/outline';
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, watch } from 'vue';
 import { useBlogStore } from '~/stores/blog';
 
 const route = useRoute();
 const router = useRouter();
 const blogStore = useBlogStore();
 
-// Estado
-const loading = ref(true);
+// Pagination state (user-driven, remains as refs)
 const currentPage = ref(1);
 const perPage = ref(10);
 const totalItems = ref(0);
-const posts = ref<Post[]>([]);
-const tag = ref<Tag | null>(null);
-const relatedTags = ref<Tag[]>([]);
-const popularCategories = ref<Category[]>([]);
 
-// Computed
-const totalPages = computed(() => Math.ceil(totalItems.value / perPage.value));
-
-const visiblePages = computed(() => {
-  const pages: (number | string)[] = [];
-  const maxVisiblePages = 5;
-  
-  if (totalPages.value <= maxVisiblePages) {
-    // Mostrar todas las páginas si son pocas
-    for (let i = 1; i <= totalPages.value; i++) {
-      pages.push(i);
-    }
-  } else {
-    // Lógica para mostrar puntos suspensivos
-    const startPage = Math.max(1, Math.min(
-      currentPage.value - Math.floor(maxVisiblePages / 2),
-      totalPages.value - maxVisiblePages + 1
-    ));
-    
-    const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages.value);
-    
-    if (startPage > 1) {
-      pages.push(1);
-      if (startPage > 2) {
-        pages.push('...');
-      }
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    
-    if (endPage < totalPages.value) {
-      if (endPage < totalPages.value - 1) {
-        pages.push('...');
-      }
-      pages.push(totalPages.value);
-    }
-  }
-  
-  return pages;
-});
-
-// Métodos
-const fetchTag = async (slug: string) => {
-  try {
-    const tags = await blogStore.fetchTags();
-    const foundTag = tags.find(t => t.slug === slug);
-    
-    if (foundTag) {
-      tag.value = foundTag;
-      document.title = `#${foundTag.name} | Blog`;
-      
-      // Obtener etiquetas relacionadas (excluyendo la actual)
-      relatedTags.value = tags
-        .filter(t => t.id !== foundTag.id)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 10);
-    } else {
-      // Redirigir a la página 404 si la etiqueta no existe
-      throw new Error('Etiqueta no encontrada');
-    }
-  } catch (error) {
-    console.error('Error al cargar la etiqueta:', error);
-    navigateTo('/404');
-  }
-};
-
-const fetchPosts = async () => {
-  if (!tag.value) return;
-  
-  try {
-    loading.value = true;
-    
-    const params: Record<string, any> = {
-      page: currentPage.value,
-      per_page: perPage.value,
-    };
-    
-    const response = await blogStore.fetchPostsByTag(tag.value.slug, params);
-    posts.value = response.data || [];
-    totalItems.value = response.total || 0;
-    
-  } catch (error) {
-    console.error('Error al cargar las publicaciones de la etiqueta:', error);
-  } finally {
-    loading.value = false;
-  }
-};
-
-const fetchPopularCategories = async () => {
-  try {
-    const categories = await blogStore.fetchCategories();
-    popularCategories.value = categories
-      .sort((a, b) => (b.posts_count || 0) - (a.posts_count || 0))
-      .slice(0, 5);
-  } catch (error) {
-    console.error('Error al cargar las categorías populares:', error);
-  }
-};
-
-const goToPage = (page: number) => {
-  if (page < 1 || page > totalPages.value) return;
-  
-  currentPage.value = page;
-  updateRoute();
-};
-
-const updateRoute = () => {
-  const query: Record<string, any> = {};
-  
-  if (currentPage.value > 1) {
-    query.page = currentPage.value;
-  }
-  
-  // Usamos replace para no agregar una nueva entrada al historial
-  router.replace({ query });
-};
-
+// Parse initial route query
 const parseRouteQuery = () => {
   const { page } = route.query;
-  
   if (page) {
     const pageNum = parseInt(page as string, 10);
     if (!isNaN(pageNum) && pageNum > 0) {
@@ -372,53 +247,145 @@ const parseRouteQuery = () => {
     currentPage.value = 1;
   }
 };
+parseRouteQuery();
+
+// Fetch tag + related tags via useAsyncData
+const { data: tagData, error: tagError } = await useAsyncData(
+  `tag-${route.params.slug}`,
+  async () => {
+    const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
+
+    const tags = await blogStore.fetchTags();
+    const foundTag = tags.find((t: any) => t.slug === slug);
+
+    if (!foundTag) {
+      navigateTo('/404');
+      return { tag: null, relatedTags: [] };
+    }
+
+    const related = tags
+      .filter((t: any) => t.id !== foundTag.id)
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 10);
+
+    return { tag: foundTag, relatedTags: related };
+  },
+  {
+    server: true,
+    lazy: false,
+    watch: [() => route.params.slug]
+  }
+);
+
+// Derived refs from tagData
+const tag = computed(() => tagData.value?.tag || null);
+const relatedTags = computed(() => tagData.value?.relatedTags || []);
+
+// Fetch popular categories via useAsyncData
+const { data: popularCategories } = await useAsyncData(
+  'tag-popular-categories',
+  async () => {
+    try {
+      const categories = await blogStore.fetchCategories();
+      return categories
+        .sort((a: any, b: any) => (b.posts_count || 0) - (a.posts_count || 0))
+        .slice(0, 5);
+    } catch (err) {
+      console.error('Error al cargar las categorías populares:', err);
+      return [];
+    }
+  },
+  { server: true, lazy: false }
+);
+
+// Fetch posts via useAsyncData
+const { data: posts, pending: loading, error: fetchError } = await useAsyncData(
+  `tag-posts-${route.params.slug}`,
+  async () => {
+    const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
+    if (!slug) return [];
+
+    try {
+      const params: Record<string, any> = {
+        page: currentPage.value,
+        per_page: perPage.value,
+      };
+
+      const response = await blogStore.fetchPostsByTag(slug, params);
+      totalItems.value = response.total || 0;
+      return response.data || [];
+    } catch (err) {
+      console.error('Error al cargar las publicaciones de la etiqueta:', err);
+      return [];
+    }
+  },
+  {
+    server: true,
+    lazy: false,
+    watch: [() => route.params.slug, currentPage]
+  }
+);
+
+// Computed
+const totalPages = computed(() => Math.ceil(totalItems.value / perPage.value));
+
+const visiblePages = computed(() => {
+  const pages: (number | string)[] = [];
+  const maxVisiblePages = 5;
+
+  if (totalPages.value <= maxVisiblePages) {
+    for (let i = 1; i <= totalPages.value; i++) {
+      pages.push(i);
+    }
+  } else {
+    const startPage = Math.max(1, Math.min(
+      currentPage.value - Math.floor(maxVisiblePages / 2),
+      totalPages.value - maxVisiblePages + 1
+    ));
+    const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages.value);
+
+    if (startPage > 1) {
+      pages.push(1);
+      if (startPage > 2) pages.push('...');
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    if (endPage < totalPages.value) {
+      if (endPage < totalPages.value - 1) pages.push('...');
+      pages.push(totalPages.value);
+    }
+  }
+
+  return pages;
+});
+
+// Métodos
+const goToPage = (page: number) => {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+  updateRoute();
+};
+
+const updateRoute = () => {
+  const query: Record<string, any> = {};
+  if (currentPage.value > 1) {
+    query.page = currentPage.value;
+  }
+  router.replace({ query });
+};
 
 // Helper para obtener la URL completa de una imagen
 const getImageUrl = (path: string) => {
   if (!path) return '';
-  if (!path) return '';
   return path.startsWith('http') ? path : `${blogStore.imageBaseUrl}${path}`;
 };
 
-// Lifecycle hooks
-onMounted(async () => {
-  const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
-
-  // Cargar datos en paralelo
-  await Promise.all([
-    fetchTag(slug),
-    fetchPopularCategories()
-  ]);
-
-  // Parsear parámetros de la URL después de cargar la etiqueta
-  parseRouteQuery();
-
-  // Cargar las publicaciones
-  await fetchPosts();
-});
-
-// Watch for route changes (cuando cambia el slug de la etiqueta)
-watch(() => route.params.slug, async (newSlug) => {
-  if (!newSlug) return;
-
-  const slug = Array.isArray(newSlug) ? newSlug[0] : newSlug;
-
-  // Resetear el estado
-  currentPage.value = 1;
-  tag.value = null;
-
-  // Cargar la nueva etiqueta y sus publicaciones
-  await fetchTag(slug);
-  parseRouteQuery();
-  await fetchPosts();
-});
-
-// Watch for query changes (paginación)
-watch(() => route.query, async (newQuery, oldQuery) => {
-  // Solo ejecutar si la query realmente cambió
+// Watch for query changes (pagination via browser back/forward)
+watch(() => route.query, (newQuery, oldQuery) => {
   if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
     parseRouteQuery();
-    await fetchPosts();
+    // useAsyncData's watch on currentPage will auto-refresh
   }
 }, { deep: true });
 </script>

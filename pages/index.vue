@@ -50,19 +50,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useBlogStore } from '~/stores/blog';
 import type { Post } from '~/stores/blog';
 
 // Initialize Nuxt composables
 const config = useRuntimeConfig();
-const route = useRoute();
 
-// Initialize store and state
+// Initialize store
 const blogStore = useBlogStore();
-const recentPosts = ref<Post[]>([]);
-const loading = ref<boolean>(true);
-const error = ref<string | null>(null);
 
 // Format date helper
 const formatDate = (dateString: string) => {
@@ -77,98 +73,17 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('es-ES', options);
 };
 
-// Mock data function for static generation
-const mockStaticPosts = () => {
-  return [
-    {
-      id: 1,
-      title: 'Bienvenido al Blog',
-      slug: 'bienvenido-al-blog',
-      excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
-      content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
-      featured_image: '/images/placeholder.jpg',
-      featured: true,
-      published_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      reading_time: 2,
-      author_id: 1,
-      category_id: 1,
-      author: {
-        id: 1,
-        name: 'Admin',
-        email: 'admin@example.com',
-        bio: 'Administrador del blog',
-        avatar: '/images/placeholder-avatar.jpg'
-      },
-      category: {
-        id: 1,
-        name: 'General',
-        slug: 'general',
-        description: 'Categoría general'
-      },
-      tags: [
-        {
-          id: 1,
-          name: 'Blog',
-          slug: 'blog',
-          description: 'Artículos de blog'
-        }
-      ]
-    },
-    {
-      id: 2,
-      title: 'Cómo utilizar Nuxt 3',
-      slug: 'como-utilizar-nuxt-3',
-      excerpt: 'Aprende a utilizar Nuxt 3 para crear sitios web estáticos.',
-      content: '<p>Nuxt 3 es un framework potente para crear sitios web estáticos y aplicaciones web.</p>',
-      featured_image: '/images/placeholder.jpg',
-      featured: false,
-      published_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-      updated_at: new Date(Date.now() - 86400000).toISOString(),
-      reading_time: 5,
-      author_id: 1,
-      category_id: 2,
-      author: {
-        id: 1,
-        name: 'Admin',
-        email: 'admin@example.com',
-        bio: 'Administrador del blog',
-        avatar: '/images/placeholder-avatar.jpg'
-      },
-      category: {
-        id: 2,
-        name: 'Tecnología',
-        slug: 'tecnologia',
-        description: 'Artículos sobre tecnología'
-      },
-      tags: [
-        {
-          id: 2,
-          name: 'Nuxt',
-          slug: 'nuxt',
-          description: 'Artículos sobre Nuxt'
-        }
-      ]
-    }
-  ];
-};
-
 // Get static mode from plugin
 const { $isStatic } = useNuxtApp();
 
 // Use Nuxt's async data for both client and SSR/SSG compatibility
-const { data: postsData, pending, error: fetchError } = await useAsyncData(
+const { data: recentPosts, pending: loading, error: fetchError } = await useAsyncData(
   'home-posts',
   async () => {
-    // In static mode, return mock data
-    if ($isStatic && $isStatic()) {
-      return mockStaticPosts();
-    }
-    
     try {
       // For normal operation, use a safe tenant/subdomain approach
       let tenant = 'taita'; // Default tenant
-      
+
       if (process.client) {
         // Client-side tenant detection
         const hostname = window?.location?.hostname || '';
@@ -177,10 +92,10 @@ const { data: postsData, pending, error: fetchError } = await useAsyncData(
           ? 'taita'
           : subdomain;
       }
-      
+
       // Configure tenant
       blogStore.setTenant(tenant);
-      
+
       // Fetch recent posts
       const response = await blogStore.fetchPosts({
         limit: 5,
@@ -189,7 +104,7 @@ const { data: postsData, pending, error: fetchError } = await useAsyncData(
         orderBy: 'published_at',
         order: 'desc'
       });
-      
+
       // Handle both direct and paginated responses
       return Array.isArray(response) ? response : (response?.data || []);
     } catch (err: any) {
@@ -205,16 +120,13 @@ const { data: postsData, pending, error: fetchError } = await useAsyncData(
     }
   },
   {
-    // For static generation, ensure we don't depend on request context
     server: true,
     lazy: false
   }
 );
 
-// Reactive references for template
-loading.value = pending.value;
-error.value = fetchError.value ? 'No se pudieron cargar las publicaciones. Por favor, intente de nuevo más tarde.' : null;
-recentPosts.value = postsData.value || [];
+// Computed error message for template compatibility
+const error = computed(() => fetchError.value?.message || null);
 </script>
 
 <!-- Removed legacy CSS variables styles - now using Tailwind classes with dark mode support -->

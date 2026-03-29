@@ -211,149 +211,21 @@ definePageMeta({
 });
 
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/vue/24/outline';
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, watch } from 'vue';
 import { useBlogStore } from '~/stores/blog';
 
 const route = useRoute();
 const router = useRouter();
 const blogStore = useBlogStore();
 
-// Estado
-const loading = ref(true);
+// Pagination state (user-driven, remains as refs)
 const currentPage = ref(1);
 const perPage = ref(10);
 const totalItems = ref(0);
-const posts = ref<Post[]>([]);
-const category = ref<Category | null>(null);
-const allCategories = ref<Category[]>([]);
 
-// Computed
-const totalPages = computed(() => Math.ceil(totalItems.value / perPage.value));
-const otherCategories = computed(() => {
-  if (!category.value) return [];
-  // Filtrar "Sin categoría" y la categoría actual
-  return allCategories.value.filter(cat =>
-    cat.id !== category.value?.id && cat.slug !== 'sin-categoria'
-  );
-});
-
-const visiblePages = computed(() => {
-  const pages: (number | string)[] = [];
-  const maxVisiblePages = 5;
-  
-  if (totalPages.value <= maxVisiblePages) {
-    // Mostrar todas las páginas si son pocas
-    for (let i = 1; i <= totalPages.value; i++) {
-      pages.push(i);
-    }
-  } else {
-    // Lógica para mostrar puntos suspensivos
-    const startPage = Math.max(1, Math.min(
-      currentPage.value - Math.floor(maxVisiblePages / 2),
-      totalPages.value - maxVisiblePages + 1
-    ));
-    
-    const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages.value);
-    
-    if (startPage > 1) {
-      pages.push(1);
-      if (startPage > 2) {
-        pages.push('...');
-      }
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    
-    if (endPage < totalPages.value) {
-      if (endPage < totalPages.value - 1) {
-        pages.push('...');
-      }
-      pages.push(totalPages.value);
-    }
-  }
-  
-  return pages;
-});
-
-// Métodos
-const fetchCategory = async (slug: string) => {
-  try {
-    // Redirigir si se intenta acceder a "Sin categoría"
-    if (slug === 'sin-categoria') {
-      navigateTo('/blog');
-      return;
-    }
-
-    const categories = await blogStore.fetchCategories();
-    const foundCategory = categories.find(cat => cat.slug === slug);
-
-    if (foundCategory) {
-      category.value = foundCategory;
-      document.title = `${foundCategory.name} | Blog`;
-    } else {
-      // Redirigir a la página 404 si la categoría no existe
-      throw new Error('Categoría no encontrada');
-    }
-  } catch (error) {
-    console.error('Error al cargar la categoría:', error);
-    navigateTo('/404');
-  }
-};
-
-const fetchPosts = async () => {
-  if (!category.value) return;
-  
-  try {
-    loading.value = true;
-    
-    const params: Record<string, any> = {
-      page: currentPage.value,
-      per_page: perPage.value,
-    };
-    
-    const response = await blogStore.fetchPostsByCategory(category.value.slug, params);
-    posts.value = response.data || [];
-    totalItems.value = response.total || 0;
-    
-  } catch (error) {
-    console.error('Error al cargar las publicaciones de la categoría:', error);
-  } finally {
-    loading.value = false;
-  }
-};
-
-const fetchAllCategories = async () => {
-  try {
-    allCategories.value = await blogStore.fetchCategories();
-  } catch (error) {
-    console.error('Error al cargar las categorías:', error);
-  }
-};
-
-const goToPage = (page: number) => {
-  if (page < 1 || page > totalPages.value) return;
-  
-  currentPage.value = page;
-  updateRoute();
-};
-
-const updateRoute = () => {
-  const query: Record<string, any> = {};
-  
-  if (currentPage.value > 1) {
-    query.page = currentPage.value;
-  }
-  
-  // Usamos replace para no agregar una nueva entrada al historial
-  router.replace({ query });
-};
-
+// Parse initial route query
 const parseRouteQuery = () => {
   const { page } = route.query;
-  
   if (page) {
     const pageNum = parseInt(page as string, 10);
     if (!isNaN(pageNum) && pageNum > 0) {
@@ -363,55 +235,137 @@ const parseRouteQuery = () => {
     currentPage.value = 1;
   }
 };
+parseRouteQuery();
+
+// Fetch category data via useAsyncData
+const { data: categoryData, error: categoryError } = await useAsyncData(
+  `category-${route.params.slug}`,
+  async () => {
+    const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
+
+    if (slug === 'sin-categoria') {
+      navigateTo('/blog');
+      return { category: null, allCategories: [] };
+    }
+
+    const [categories] = await Promise.all([
+      blogStore.fetchCategories()
+    ]);
+
+    const foundCategory = categories.find((cat: any) => cat.slug === slug);
+
+    if (!foundCategory) {
+      navigateTo('/404');
+      return { category: null, allCategories: categories };
+    }
+
+    return { category: foundCategory, allCategories: categories };
+  },
+  {
+    server: true,
+    lazy: false,
+    watch: [() => route.params.slug]
+  }
+);
+
+// Derived refs from categoryData
+const category = computed(() => categoryData.value?.category || null);
+const allCategories = computed(() => categoryData.value?.allCategories || []);
+
+// Fetch posts via useAsyncData
+const { data: posts, pending: loading, error: fetchError, refresh: refreshPosts } = await useAsyncData(
+  `category-posts-${route.params.slug}`,
+  async () => {
+    const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
+    if (!slug) return [];
+
+    try {
+      const params: Record<string, any> = {
+        page: currentPage.value,
+        per_page: perPage.value,
+      };
+
+      const response = await blogStore.fetchPostsByCategory(slug, params);
+      totalItems.value = response.total || 0;
+      return response.data || [];
+    } catch (err) {
+      console.error('Error al cargar las publicaciones de la categoría:', err);
+      return [];
+    }
+  },
+  {
+    server: true,
+    lazy: false,
+    watch: [() => route.params.slug, currentPage]
+  }
+);
+
+// Computed
+const totalPages = computed(() => Math.ceil(totalItems.value / perPage.value));
+const otherCategories = computed(() => {
+  if (!category.value) return [];
+  return allCategories.value.filter((cat: any) =>
+    cat.id !== category.value?.id && cat.slug !== 'sin-categoria'
+  );
+});
+
+const visiblePages = computed(() => {
+  const pages: (number | string)[] = [];
+  const maxVisiblePages = 5;
+
+  if (totalPages.value <= maxVisiblePages) {
+    for (let i = 1; i <= totalPages.value; i++) {
+      pages.push(i);
+    }
+  } else {
+    const startPage = Math.max(1, Math.min(
+      currentPage.value - Math.floor(maxVisiblePages / 2),
+      totalPages.value - maxVisiblePages + 1
+    ));
+    const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages.value);
+
+    if (startPage > 1) {
+      pages.push(1);
+      if (startPage > 2) pages.push('...');
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    if (endPage < totalPages.value) {
+      if (endPage < totalPages.value - 1) pages.push('...');
+      pages.push(totalPages.value);
+    }
+  }
+
+  return pages;
+});
+
+// Métodos
+const goToPage = (page: number) => {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+  updateRoute();
+};
+
+const updateRoute = () => {
+  const query: Record<string, any> = {};
+  if (currentPage.value > 1) {
+    query.page = currentPage.value;
+  }
+  router.replace({ query });
+};
 
 // Helper para obtener la URL completa de una imagen
 const getImageUrl = (path: string) => {
   if (!path) return '';
-  if (!path) return '';
   return path.startsWith('http') ? path : `${blogStore.imageBaseUrl}${path}`;
 };
 
-// Lifecycle hooks
-onMounted(async () => {
-  const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
-
-  // Cargar datos en paralelo
-  await Promise.all([
-    fetchCategory(slug),
-    fetchAllCategories()
-  ]);
-
-  // Parsear parámetros de la URL después de cargar la categoría
-  parseRouteQuery();
-
-  // Cargar las publicaciones
-  await fetchPosts();
-});
-
-// Watch for route changes (cuando cambia el slug de la categoría)
-watch(() => route.params.slug, async (newSlug) => {
-  // Only execute if we're on the category route
-  if (!route.path.startsWith('/category/')) return;
-  if (!newSlug) return;
-
-  const slug = Array.isArray(newSlug) ? newSlug[0] : newSlug;
-
-  // Resetear el estado
-  currentPage.value = 1;
-  category.value = null;
-
-  // Cargar la nueva categoría y sus publicaciones
-  await fetchCategory(slug);
-  parseRouteQuery();
-  await fetchPosts();
-});
-
-// Watch for query changes (paginación)
-watch(() => route.query, async (newQuery, oldQuery) => {
-  // Solo ejecutar si la query realmente cambió
+// Watch for query changes (pagination via browser back/forward)
+watch(() => route.query, (newQuery, oldQuery) => {
   if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
     parseRouteQuery();
-    await fetchPosts();
+    // useAsyncData's watch on currentPage will auto-refresh
   }
 }, { deep: true });
 </script>

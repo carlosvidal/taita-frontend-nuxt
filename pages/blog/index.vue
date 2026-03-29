@@ -257,9 +257,8 @@
 
 <script setup lang="ts">
 import { ArrowLongLeftIcon, ArrowLongRightIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useBlogStore } from '~/stores/blog';
-import { useRuntimeConfig, useRoute, useRouter } from '#imports';
 
 // Initialize Nuxt composables and store
 const route = useRoute();
@@ -267,16 +266,124 @@ const router = useRouter();
 const config = useRuntimeConfig();
 const blogStore = useBlogStore();
 
-// Estado
-const loading = ref(true);
+// Estado (filters and pagination remain as refs since they are user-driven)
 const searchQuery = ref('');
 const sortBy = ref('newest');
 const currentPage = ref(1);
 const perPage = ref(10);
 const totalItems = ref(0);
-const posts = ref<Post[]>([]);
-const categories = ref<Category[]>([]);
-const popularTags = ref<Tag[]>([]);
+
+// Parse initial route query
+const parseRouteQuery = () => {
+  const { q, sort, page } = route.query;
+  if (q) searchQuery.value = q as string;
+  if (sort) sortBy.value = sort as string;
+  if (page) currentPage.value = parseInt(page as string, 10) || 1;
+};
+parseRouteQuery();
+
+// Fetch posts via useAsyncData (runs on both server and client)
+const { data: posts, pending: loading, error: fetchError, refresh: refreshPosts } = await useAsyncData(
+  'blog-posts',
+  async () => {
+    try {
+      // Determine tenant
+      let tenant = 'taita';
+      if (process.client) {
+        const hostname = window?.location?.hostname || '';
+        const subdomain = hostname.split('.')[0];
+        tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain)
+          ? 'taita'
+          : subdomain;
+      }
+      blogStore.setTenant(tenant);
+
+      const params: Record<string, any> = {
+        page: currentPage.value,
+        per_page: perPage.value,
+        search: searchQuery.value || undefined,
+        sort: sortBy.value,
+        include: 'category,tags,author',
+        status: 'published',
+        orderBy: 'published_at',
+        order: 'desc'
+      };
+
+      const response = await blogStore.fetchPosts(params);
+
+      // Handle both array and paginated response
+      if (Array.isArray(response)) {
+        totalItems.value = response.length;
+        return response;
+      } else if (response && typeof response === 'object') {
+        if ('data' in response) {
+          totalItems.value = typeof response.total === 'number' ? response.total : 0;
+          if (typeof response.per_page === 'number') {
+            perPage.value = response.per_page;
+          }
+          return Array.isArray(response.data) ? response.data : [];
+        } else if (Object.keys(response).length > 0) {
+          totalItems.value = 1;
+          return [response];
+        }
+      }
+      totalItems.value = 0;
+      return [];
+    } catch (err: any) {
+      console.error('Error al cargar las publicaciones:', err);
+      totalItems.value = 0;
+      return [];
+    }
+  },
+  {
+    server: true,
+    lazy: false,
+    watch: [currentPage, searchQuery, sortBy]
+  }
+);
+
+// Fetch categories via useAsyncData
+const { data: categories } = await useAsyncData(
+  'blog-categories',
+  async () => {
+    try {
+      const response = await blogStore.fetchCategories();
+      if (Array.isArray(response)) return response;
+      if (response && 'data' in response) return response.data || [];
+      return [];
+    } catch (err) {
+      console.error('Error al cargar las categorías:', err);
+      return [];
+    }
+  },
+  { server: true, lazy: false }
+);
+
+// Fetch popular tags via useAsyncData
+const { data: popularTags } = await useAsyncData(
+  'blog-popular-tags',
+  async () => {
+    try {
+      const response = await blogStore.fetchTags({
+        popular: true,
+        limit: 10,
+        page: 1,
+        per_page: 10,
+        sort: 'popular'
+      });
+      if (Array.isArray(response)) return response;
+      if (response && 'data' in response) return response.data || [];
+      return [];
+    } catch (err) {
+      console.error('Error al cargar las etiquetas populares:', err);
+      return [];
+    }
+  },
+  { server: true, lazy: false }
+);
+
+// Computed error for template compatibility
+const error = computed(() => fetchError.value?.message || null);
 
 // Computed
 const totalPages = computed(() => Math.ceil(totalItems.value / perPage.value));
@@ -284,263 +391,43 @@ const totalPages = computed(() => Math.ceil(totalItems.value / perPage.value));
 const visiblePages = computed(() => {
   const pages: (number | string)[] = [];
   const maxVisiblePages = 5;
-  
+
   if (totalPages.value <= maxVisiblePages) {
-    // Mostrar todas las páginas si son pocas
     for (let i = 1; i <= totalPages.value; i++) {
       pages.push(i);
     }
   } else {
-    // Lógica para mostrar puntos suspensivos
     const startPage = Math.max(1, Math.min(
       currentPage.value - Math.floor(maxVisiblePages / 2),
       totalPages.value - maxVisiblePages + 1
     ));
-    
     const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages.value);
-    
+
     if (startPage > 1) {
       pages.push(1);
-      if (startPage > 2) {
-        pages.push('...');
-      }
+      if (startPage > 2) pages.push('...');
     }
-    
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
-    
     if (endPage < totalPages.value) {
-      if (endPage < totalPages.value - 1) {
-        pages.push('...');
-      }
+      if (endPage < totalPages.value - 1) pages.push('...');
       pages.push(totalPages.value);
     }
   }
-  
+
   return pages;
 });
 
-// Mock data function for static generation
-const mockStaticPosts = () => {
-  return [
-    {
-      id: 1,
-      title: 'Bienvenido al Blog',
-      slug: 'bienvenido-al-blog',
-      excerpt: 'Este es un ejemplo de entrada de blog generada estáticamente.',
-      content: '<p>Este es un ejemplo de contenido de blog generado estáticamente.</p>',
-      featured_image: '/images/placeholder.jpg',
-      featured: true,
-      published_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      reading_time: 2,
-      author_id: 1,
-      category_id: 1,
-      author: {
-        id: 1,
-        name: 'Admin',
-        email: 'admin@example.com',
-        bio: 'Administrador del blog',
-        avatar: '/images/placeholder-avatar.jpg'
-      },
-      category: {
-        id: 1,
-        name: 'General',
-        slug: 'general',
-        description: 'Categoría general'
-      },
-      tags: [
-        {
-          id: 1,
-          name: 'Blog',
-          slug: 'blog',
-          description: 'Artículos de blog'
-        }
-      ]
-    },
-    {
-      id: 2,
-      title: 'Cómo utilizar Nuxt 3',
-      slug: 'como-utilizar-nuxt-3',
-      excerpt: 'Aprende a utilizar Nuxt 3 para crear sitios web estáticos.',
-      content: '<p>Nuxt 3 es un framework potente para crear sitios web estáticos y aplicaciones web.</p>',
-      featured_image: '/images/placeholder.jpg',
-      featured: false,
-      published_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-      updated_at: new Date(Date.now() - 86400000).toISOString(),
-      reading_time: 5,
-      author_id: 1,
-      category_id: 2,
-      author: {
-        id: 1,
-        name: 'Admin',
-        email: 'admin@example.com',
-        bio: 'Administrador del blog',
-        avatar: '/images/placeholder-avatar.jpg'
-      },
-      category: {
-        id: 2,
-        name: 'Tecnología',
-        slug: 'tecnologia',
-        description: 'Artículos sobre tecnología'
-      },
-      tags: [
-        {
-          id: 2,
-          name: 'Nuxt',
-          slug: 'nuxt',
-          description: 'Artículos sobre Nuxt'
-        }
-      ]
-    }
-  ];
-};
-
 // Métodos
-const fetchPosts = async () => {
-  // Get static mode from plugin
-  const { $isStatic } = useNuxtApp();
-  
-  // For static generation, use mock data
-  if ($isStatic && $isStatic()) {
-    posts.value = mockStaticPosts();
-    loading.value = false;
-    return;
-  }
-  
-  // Only run on client-side for non-static mode
-  if (!process.client) {
-    posts.value = [];
-    return;
-  }
-
-  try {
-    loading.value = true;
-    
-    // Determine tenant based on hostname (client-side only)
-    const hostname = window?.location?.hostname || '';
-    const subdomain = hostname.split('.')[0];
-    const tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain) 
-      ? 'taita' 
-      : subdomain;
-    
-    // Configure tenant
-    blogStore.setTenant(tenant);
-    
-    const params: Record<string, any> = {
-      page: currentPage.value,
-      per_page: perPage.value,
-      search: searchQuery.value || undefined,
-      sort: sortBy.value,
-      include: 'category,tags,author',
-      status: 'published',
-      orderBy: 'published_at',
-      order: 'desc'
-    };
-    
-    console.log('Fetching posts with params:', params);
-    
-    const response = await blogStore.fetchPosts(params);
-    
-    // Handle both array and paginated response
-    if (Array.isArray(response)) {
-      posts.value = response;
-      totalItems.value = response.length;
-    } else if (response && typeof response === 'object') {
-      if ('data' in response) {
-        posts.value = Array.isArray(response.data) ? response.data : [];
-        totalItems.value = typeof response.total === 'number' ? response.total : 0;
-        // No actualizar currentPage aquí para evitar loops
-        if (typeof response.per_page === 'number') {
-          perPage.value = response.per_page;
-        }
-      } else if (Object.keys(response).length > 0) {
-        // Handle case where response is an object but not in expected paginated format
-        posts.value = [response];
-        totalItems.value = 1;
-      } else {
-        posts.value = [];
-        totalItems.value = 0;
-      }
-    } else {
-      console.error('Unexpected response format:', response);
-      posts.value = [];
-      totalItems.value = 0;
-    }
-    
-  } catch (error: any) {
-    console.error('Error al cargar las publicaciones:', error);
-    if (error.response) {
-      console.error('Error details:', {
-        status: error.response.status,
-        data: error.response.data,
-        url: error.response.config?.url
-      });
-    }
-    posts.value = [];
-    totalItems.value = 0;
-  } finally {
-    loading.value = false;
-  }
-};
-
-const fetchCategories = async () => {
-  try {
-    const response = await blogStore.fetchCategories();
-    console.log('Categories response:', response);
-    
-    // Handle both array and paginated response
-    if (Array.isArray(response)) {
-      categories.value = response;
-    } else if (response && 'data' in response) {
-      categories.value = response.data || [];
-    } else {
-      console.error('Unexpected categories response format:', response);
-      categories.value = [];
-    }
-  } catch (error) {
-    console.error('Error al cargar las categorías:', error);
-    categories.value = [];
-  }
-};
-
-const fetchPopularTags = async () => {
-  try {
-    const response = await blogStore.fetchTags({ 
-      popular: true, 
-      limit: 10,
-      page: 1,
-      per_page: 10,
-      sort: 'popular'
-    });
-    
-    console.log('Popular tags response:', response);
-    
-    // Handle both array and paginated response
-    if (Array.isArray(response)) {
-      popularTags.value = response;
-    } else if (response && 'data' in response) {
-      popularTags.value = response.data || [];
-    } else {
-      console.error('Unexpected tags response format:', response);
-      popularTags.value = [];
-    }
-  } catch (error) {
-    console.error('Error al cargar las etiquetas populares:', error);
-    popularTags.value = [];
-  }
-};
-
 const goToPage = (page: number) => {
   if (page < 1 || page > totalPages.value) return;
-  
   currentPage.value = page;
   updateRoute();
 };
 
 const applyFilters = () => {
-  currentPage.value = 1; // Reset to first page when filters change
+  currentPage.value = 1;
   updateRoute();
 };
 
@@ -553,46 +440,17 @@ const resetFilters = () => {
 
 const updateRoute = () => {
   const query: Record<string, any> = {};
-  
   if (searchQuery.value) query.q = searchQuery.value;
   if (sortBy.value !== 'newest') query.sort = sortBy.value;
   if (currentPage.value > 1) query.page = currentPage.value;
-  
   router.replace({ query });
 };
 
-const parseRouteQuery = () => {
-  const { q, sort, page } = route.query;
-  
-  if (q) searchQuery.value = q as string;
-  if (sort) sortBy.value = sort as string;
-  if (page) currentPage.value = parseInt(page as string, 10) || 1;
-};
-
-// Lifecycle hooks
-onMounted(async () => {
-  parseRouteQuery();
-  if (process.client) {
-    await Promise.all([
-      fetchPosts(),
-      fetchCategories(),
-      fetchPopularTags()
-    ]);
-  } else {
-    // Prevenir errores en SSR/SSG
-    posts.value = [];
-    categories.value = [];
-    popularTags.value = [];
-    loading.value = false;
-  }
-});
-
-// Watch for route changes
+// Watch for route query changes (e.g. browser back/forward)
 watch(() => route.query, (newQuery, oldQuery) => {
-  // Solo ejecutar si la query realmente cambió
   if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
     parseRouteQuery();
-    fetchPosts();
+    // useAsyncData's watch on [currentPage, searchQuery, sortBy] will auto-refresh
   }
 }, { deep: true });
 </script>
