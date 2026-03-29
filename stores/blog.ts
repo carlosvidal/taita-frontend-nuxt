@@ -100,7 +100,7 @@ const useSafeConfig = () => {
 export const useBlogStore = defineStore('blog', () => {
   // Static mode global para todo el store
   const nuxtApp = typeof useNuxtApp === 'function' ? useNuxtApp() : null;
-  const isStaticMode = (process.server && process.env.NODE_ENV === 'production') || (nuxtApp?.$staticMode ?? defaultConfig.staticMode);
+  const isStaticMode = nuxtApp?.$staticMode ?? defaultConfig.staticMode ?? false;
   // Initialize config
   const config = useSafeConfig();
   
@@ -175,7 +175,7 @@ export const useBlogStore = defineStore('blog', () => {
   const fetchPosts = async (params: Record<string, any> = {}): Promise<PaginatedResponse<Post>> => {
     // Check if we're in static generation mode or SSR production mode
     const nuxtApp = typeof useNuxtApp === 'function' ? useNuxtApp() : null;
-const isStaticMode = (process.server && process.env.NODE_ENV === 'production') || (nuxtApp?.$staticMode ?? config.staticMode);
+const isStaticMode = nuxtApp?.$staticMode ?? config.staticMode ?? false;
     
     // Provide mock data for static generation
     if (isStaticMode) {
