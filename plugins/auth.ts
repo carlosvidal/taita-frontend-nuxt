@@ -5,12 +5,9 @@ declare global {
   interface Window {
     $auth?: any;
   }
-  interface NuxtApp {
-    $auth?: any;
-  }
 }
 
-// Create a dummy auth instance for SSR or error cases
+// Create a dummy auth instance for SSR
 function createDummyAuth() {
   return {
     user: null,
@@ -38,45 +35,30 @@ function createDummyAuth() {
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
-  // Check if already provided in this plugin instance
   if (nuxtApp.$auth) {
     return { provide: { auth: nuxtApp.$auth } };
   }
 
-  // Only initialize on client side
-  if (!process.client) {
+  // SSR: provide dummy auth (auth is client-side only)
+  if (import.meta.server) {
     const dummyAuth = createDummyAuth();
-    nuxtApp.$auth = dummyAuth;
     return { provide: { auth: dummyAuth } };
   }
-  
-  // Check if already initialized in window
+
+  // Client: check if already initialized
   if (window.$auth) {
-    nuxtApp.$auth = window.$auth;
     return { provide: { auth: window.$auth } };
   }
 
   try {
     const auth = useAuth();
-    
-    // Initialize auth state
     auth.initAuth();
-    
-    // Make it available globally
     window.$auth = auth;
-    
-    // Store in Nuxt app context
-    nuxtApp.$auth = auth;
-    
     return { provide: { auth } };
   } catch (error) {
     console.error('Failed to initialize auth plugin:', error);
-    
-    // Return a dummy auth instance in case of error
     const dummyAuth = createDummyAuth();
     window.$auth = dummyAuth;
-    nuxtApp.$auth = dummyAuth;
-    
     return { provide: { auth: dummyAuth } };
   }
 });

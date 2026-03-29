@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  // SPA mode - tenant detection is client-side
-  ssr: false,
+  // SSR enabled for SEO (blog engine needs server-rendered HTML)
+  ssr: true,
 
   // Modules
   modules: [
@@ -115,9 +115,7 @@ export default defineNuxtConfig({
 
   // Route rules
   routeRules: {
-    '/': { prerender: true },
     '/blog/**': { swr: 3600 },
-    '/admin/**': { ssr: false },
     '/api/**': { cors: true, headers: { 'access-control-allow-methods': 'GET,POST,PUT,DELETE,OPTIONS' } },
     '/_nuxt/**': { headers: { 'cache-control': 'public, max-age=31536000' } },
     '/images/**': { headers: { 'cache-control': 'public, max-age=31536000' } },
@@ -127,10 +125,6 @@ export default defineNuxtConfig({
   // Nitro - node-server for PM2 deployment
   nitro: {
     preset: 'node-server',
-    prerender: {
-      crawlLinks: true,
-      routes: ['/sitemap.xml', '/robots.txt'],
-    },
   },
 
   // Auto-import components

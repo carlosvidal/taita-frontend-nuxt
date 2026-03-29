@@ -1,5 +1,6 @@
 // composables/useApi.ts
 import { useRuntimeConfig } from '#app';
+import { useTenant } from '~/composables/useTenant';
 
 export const useApi = () => {
   const config = useRuntimeConfig();
@@ -7,12 +8,29 @@ export const useApi = () => {
   const baseURL = config.public.apiBaseUrl || 'https://backend.taita.blog/api';
   const imageBaseUrl = config.public.imageBaseUrl || 'https://backend.taita.blog';
 
+  const getTenantHeaders = (): Record<string, string> => {
+    try {
+      const { getTenant } = useTenant();
+      const tenant = getTenant();
+      if (tenant && !['localhost', '127.0.0.1', 'www', ''].includes(tenant)) {
+        return {
+          'X-Taita-Subdomain': tenant,
+          'X-Tenant': tenant,
+        };
+      }
+    } catch {
+      // fallback if useTenant is not available
+    }
+    return {};
+  };
+
   // Función genérica para hacer peticiones
   const fetchFromApi = async (endpoint: string, options: any = {}) => {
     try {
       const headers = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        ...getTenantHeaders(),
         ...options.headers,
       };
 
@@ -26,21 +44,22 @@ export const useApi = () => {
         baseURL,
         ...options,
         headers,
-        credentials: 'include', // Importante para CORS con credenciales
+        credentials: 'include',
       });
 
       return response;
     } catch (error: any) {
       console.error('API Error:', error);
-      
-      // Manejar errores de autenticación
+
       if (error.response?.status === 401) {
         const authStore = useAuthStore();
         await authStore.logout();
-        const router = useRouter();
-        await router.push('/login');
+        if (import.meta.client) {
+          const router = useRouter();
+          await router.push('/login');
+        }
       }
-      
+
       throw error;
     }
   };
@@ -64,20 +83,7 @@ export const useApi = () => {
   };
 
   const getCategories = async () => {
-    try {
-      // Add subdomain to the request if available
-      const subdomain = window.location.hostname.split('.')[0];
-      const headers = {};
-      
-      if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
-        headers['X-Taita-Subdomain'] = subdomain;
-      }
-      
-      return await fetchFromApi('/categories/public', { headers });
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      throw error;
-    }
+    return fetchFromApi('/categories/public');
   };
 
   const getTags = async () => {
@@ -85,31 +91,7 @@ export const useApi = () => {
   };
 
   const getMenu = async () => {
-    try {
-      // Add subdomain to the request if available
-      const subdomain = process.client ? window.location.hostname.split('.')[0] : '';
-      const headers: Record<string, string> = {};
-
-      console.log('[useApi.getMenu] Full hostname:', process.client ? window.location.hostname : 'SSR');
-      console.log('[useApi.getMenu] Detected subdomain:', subdomain);
-      console.log('[useApi.getMenu] Will send X-Taita-Subdomain header?', subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain));
-
-      if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
-        headers['X-Taita-Subdomain'] = subdomain;
-        console.log('[useApi.getMenu] Adding X-Taita-Subdomain header:', subdomain);
-      } else {
-        console.log('[useApi.getMenu] NOT adding X-Taita-Subdomain header. Subdomain was:', subdomain);
-      }
-
-      console.log('[useApi.getMenu] Final headers:', headers);
-      console.log('[useApi.getMenu] Fetching from endpoint: /menu/public');
-      const result = await fetchFromApi('/menu/public', { headers });
-      console.log('[useApi.getMenu] Menu API returned:', result);
-      return result;
-    } catch (error) {
-      console.error('[useApi] Error fetching menu:', error);
-      throw error;
-    }
+    return fetchFromApi('/menu/public');
   };
 
   const getPostsByCategory = async (categorySlug: string) => {
@@ -121,100 +103,40 @@ export const useApi = () => {
   };
 
   const getCategory = async (slug: string) => {
-    try {
-      // Add subdomain to the request if available
-      const subdomain = window.location.hostname.split('.')[0];
-      const headers = {};
-      
-      if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
-        headers['X-Taita-Subdomain'] = subdomain;
-      }
-      
-      return await fetchFromApi(`/categories/public/${slug}`, { headers });
-    } catch (error) {
-      console.error('Error fetching category:', error);
-      throw error;
-    }
+    return fetchFromApi(`/categories/public/${slug}`);
   };
 
   const getTag = async (slug: string) => {
-    try {
-      const headers: Record<string, string> = {};
-      const subdomain = process.client ? window.location.hostname.split('.')[0] : '';
-      
-      if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
-        headers['X-Tenant'] = subdomain;
-      }
-      
-      // Add authentication token if available
-      const authStore = useAuthStore();
-      if (authStore.token) {
-        headers['Authorization'] = `Bearer ${authStore.token}`;
-      }
-      
-      return await fetchFromApi(`/tags/${slug}`, { headers });
-    } catch (error) {
-      console.error('Error fetching tag:', error);
-      throw error;
-    }
+    return fetchFromApi(`/tags/${slug}`);
   };
 
   // Método para construir URLs de imágenes
   const getImageUrl = (path: string) => {
     if (!path) return '';
-    if (!path) return '';
     return path.startsWith('http') ? path : `${imageBaseUrl}${path}`;
   };
 
   return {
-    // Core methods
     fetchFromApi,
-
-    // Post methods
     getPosts,
     getPost,
-
-    // Category methods
     getCategories,
     getCategory,
-
-    // Tag methods
     getTags,
     getTag,
-
-    // Menu methods
     getMenu,
-
-    // Relationship methods
     getPostsByCategory,
     getPostsByTag,
-    
-    // Search
     searchPosts: async (query: string, params: Record<string, any> = {}) => {
-      try {
-        const searchParams = new URLSearchParams({
-          q: query,
-          ...params
-        });
-        
-        // Add tenant to query params if available
-        const subdomain = process.client ? window.location.hostname.split('.')[0] : '';
-        if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
-          searchParams.append('tenant', subdomain);
-        }
-        
-        return await fetchFromApi(`/search?${searchParams.toString()}`);
-      } catch (error) {
-        console.error('Error searching posts:', error);
-        throw error;
-      }
+      const searchParams = new URLSearchParams({
+        q: query,
+        ...params
+      });
+      return fetchFromApi(`/search?${searchParams.toString()}`);
     },
-    
-    // Utilities
     getImageUrl,
     formatDate: (dateString: string, locale = 'es-ES'): string => {
       if (!dateString) return '';
-      
       const date = new Date(dateString);
       return new Intl.DateTimeFormat(locale, {
         year: 'numeric',

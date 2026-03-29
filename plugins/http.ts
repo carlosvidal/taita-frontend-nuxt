@@ -2,6 +2,7 @@
 import { defineNuxtPlugin } from '#app';
 import { useRuntimeConfig, useRouter } from '#imports';
 import { useAuthStore } from '~/composables/useAuth';
+import { useTenant } from '~/composables/useTenant';
 
 // Type declarations for the plugin
 declare module '#app' {
@@ -94,12 +95,15 @@ export default defineNuxtPlugin<PluginInjects>((nuxtApp) => {
           headers['Authorization'] = `Bearer ${token}`;
         }
         
-        // Añadir tenant basado en el subdominio
-        if (process.client) {
-          const subdomain = window.location.hostname.split('.')[0];
-          if (subdomain && !['localhost', '127.0.0.1', 'www', ''].includes(subdomain)) {
-            headers['X-Tenant'] = subdomain;
+        // Añadir tenant basado en el subdominio (funciona en SSR y client)
+        try {
+          const { getTenant } = useTenant();
+          const tenant = getTenant();
+          if (tenant && tenant !== 'demo') {
+            headers['X-Tenant'] = tenant;
           }
+        } catch {
+          // useTenant may not be available during early init
         }
         
         options.headers = headers;
