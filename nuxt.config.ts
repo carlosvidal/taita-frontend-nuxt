@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   // Modules
   modules: [
     '@pinia/nuxt',
-    '@pinia-plugin-persistedstate/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/tailwindcss',
     '@nuxtjs/device',
     '@nuxtjs/robots',
@@ -15,7 +15,7 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@nuxt/image',
     '@vueuse/nuxt',
-    'nuxt-icon',
+    '@nuxt/icon',
     'nuxt-swiper',
   ],
 
@@ -131,8 +131,6 @@ export default defineNuxtConfig({
   components: [
     '~/components',
     '~/components/ui',
-    '~/components/layouts',
-    '~/components/sections',
   ],
 
   // Auto-import composables
@@ -193,29 +191,14 @@ export default defineNuxtConfig({
 
   // Vite
   vite: {
-    css: {
-      preprocessorOptions: {
-        scss: {
-          additionalData: `
-            @use "sass:color";
-            @use "sass:map";
-            @use "sass:math";
-            @import "~/assets/scss/_variables.scss";
-            @import "~/assets/scss/_mixins.scss";
-          `,
-        },
-      },
-    },
     optimizeDeps: {
-      include: ['vue', 'vue-router', '@vueuse/core'],
-      exclude: ['@nuxtjs/color-mode'],
+      include: ['vue', 'vue-router'],
     },
     build: {
       rollupOptions: {
         output: {
           manualChunks: {
-            'vue-vendor': ['vue', 'vue-router', 'pinia', '@vueuse/core'],
-            'ui-vendor': ['@headlessui/vue', '@heroicons/vue'],
+            'vue-vendor': ['vue', 'vue-router', 'pinia'],
           },
         },
       },
