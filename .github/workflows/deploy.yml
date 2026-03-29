@@ -31,14 +31,14 @@ jobs:
           NODE_ENV: production
 
       - name: Deploy to server
-        uses: easingthemes/ssh-deploy@v5
+        uses: burnett01/rsync-deployments@7.0.1
         with:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.SSH_HOST }}
-          REMOTE_USER: ${{ secrets.SSH_USER }}
-          SOURCE: .output/
-          TARGET: /var/www/taita-frontend/.output/
-          ARGS: -rlgoDzvc --delete
+          switches: -rlgoDzvc --delete
+          path: .output/
+          remote_path: /var/www/taita-frontend/.output/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_KEY }}
 
       - name: Restart PM2
         uses: appleboy/ssh-action@v1
