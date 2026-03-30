@@ -33,7 +33,7 @@ export default defineNuxtPlugin(async () => {
     useState('adsPublisherId', () => publisherId)
     useState('adsPlan', () => settings?.plan || 'FREE')
 
-    // Load AdSense script
+    // Load AdSense script (meta tag handled by ads-meta.ts for SSR)
     if (!document.querySelector('script[src*="adsbygoogle"]')) {
       const script = document.createElement('script')
       script.async = true
