@@ -113,11 +113,11 @@
 
         <!-- Lista de publicaciones -->
         <div v-else class="space-y-6">
-          <ArticleCardHorizontal 
-            v-for="post in posts" 
-            :key="post.id" 
-            :post="post"
-          />
+          <template v-for="(post, index) in posts" :key="post.id">
+            <ArticleCardHorizontal :post="post" />
+            <!-- Ad every 3 posts -->
+            <AdSlot v-if="(index + 1) % 3 === 0 && index < posts.length - 1" placement="banner" />
+          </template>
         </div>
 
         <!-- Paginación -->
@@ -259,6 +259,7 @@
 import { ArrowLongLeftIcon, ArrowLongRightIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 import { ref, computed, watch } from 'vue';
 import { useBlogStore } from '~/stores/blog';
+import AdSlot from '~/components/ui/AdSlot.vue';
 
 // Initialize Nuxt composables and store
 const route = useRoute();

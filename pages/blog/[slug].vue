@@ -80,6 +80,9 @@
         </nuxt-link>
       </div>
 
+      <!-- Ad before content -->
+      <AdSlot placement="banner" />
+
       <!-- Post content or paywall -->
       <template v-if="post.locked">
         <Paywall
@@ -91,6 +94,9 @@
       <template v-else>
         <div class="reading-content" v-html="post.content"></div>
       </template>
+
+      <!-- Ad after content -->
+      <AdSlot placement="in-article" />
 
       <!-- Author bio -->
       <div v-if="post.author?.bio" class="author-bio">
@@ -143,6 +149,7 @@
 <script setup lang="ts">
 import { useBlogStore } from '~/stores/blog';
 import Paywall from '~/components/ui/Paywall.vue';
+import AdSlot from '~/components/ui/AdSlot.vue';
 
 const route = useRoute();
 const blogStore = useBlogStore();
