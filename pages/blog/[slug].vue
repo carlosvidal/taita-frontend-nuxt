@@ -219,14 +219,12 @@ const fetchPost = async () => {
   /* Content styles are inherited from reading-theme.css */
 }
 
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  :deep(.reading-content code) {
-    background-color: rgb(45, 45, 45);
-  }
+/* Dark mode adjustments - uses class-based dark mode */
+:global(html.dark) :deep(.reading-content code) {
+  background-color: rgb(45, 45, 45);
+}
 
-  :deep(.reading-content pre) {
-    background-color: rgb(29, 29, 29);
-  }
+:global(html.dark) :deep(.reading-content pre) {
+  background-color: rgb(29, 29, 29);
 }
 </style>
