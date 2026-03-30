@@ -24,15 +24,24 @@
       <!-- Content -->
       <div class="p-6 flex-1 flex flex-col">
         <div class="flex-1">
-          <!-- Category -->
-          <div v-if="post.category" class="mb-2">
-            <NuxtLink 
+          <!-- Category + Visibility Badge -->
+          <div v-if="post.category || post.locked" class="mb-2 flex flex-wrap gap-1.5">
+            <NuxtLink
+              v-if="post.category"
               :to="`/category/${post.category.slug}`"
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100"
               @click.stop
             >
               {{ post.category.name }}
             </NuxtLink>
+            <span v-if="post.visibility === 'SUBSCRIBERS'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              Suscriptores
+            </span>
+            <span v-else-if="post.visibility === 'PREMIUM'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l3.057-3 3.943 2.5L16 0l3 3-1 5.5 2 4.5-3 2v5l-5 2-5-2v-5l-3-2 2-4.5L5 3z" /></svg>
+              Premium
+            </span>
           </div>
 
           <!-- Title -->

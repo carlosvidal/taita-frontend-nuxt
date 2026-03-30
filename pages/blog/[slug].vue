@@ -80,8 +80,17 @@
         </nuxt-link>
       </div>
 
-      <!-- Post content with reading-optimized styles -->
-      <div class="reading-content" v-html="post.content"></div>
+      <!-- Post content or paywall -->
+      <template v-if="post.locked">
+        <Paywall
+          :visibility="post.visibility || 'SUBSCRIBERS'"
+          :excerpt="post.content"
+          :show-excerpt="!!post.content"
+        />
+      </template>
+      <template v-else>
+        <div class="reading-content" v-html="post.content"></div>
+      </template>
 
       <!-- Author bio -->
       <div v-if="post.author?.bio" class="author-bio">
@@ -133,6 +142,7 @@
 
 <script setup lang="ts">
 import { useBlogStore } from '~/stores/blog';
+import Paywall from '~/components/ui/Paywall.vue';
 
 const route = useRoute();
 const blogStore = useBlogStore();

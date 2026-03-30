@@ -49,6 +49,9 @@ export interface Post {
   tags?: Tag[];
   meta_title?: string;
   meta_description?: string;
+  visibility?: 'PUBLIC' | 'SUBSCRIBERS' | 'PREMIUM';
+  locked?: boolean;
+  lockReason?: 'subscription_required' | 'premium_required';
 }
 
 interface PaginatedResponse<T> {
@@ -360,14 +363,21 @@ const isStaticMode = nuxtApp?.$staticMode ?? config.staticMode ?? false;
 let tenantValue = currentTenant.value || 'demo';
 if (/^192\./.test(tenantValue)) tenantValue = 'demo';
 query.set('tenant', tenantValue);
+      // Include subscriber token if available
+      const subscriberToken = useCookie('subscriber_token');
+      const fetchHeaders: Record<string, string> = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Taita-Subdomain': tenantValue,
+      };
+      if (subscriberToken.value) {
+        fetchHeaders['Authorization'] = `Bearer ${subscriberToken.value}`;
+      }
+
       const response = await $fetch<PaginatedResponse<Post>>(
         `${apiBaseUrl.value}/posts/public?${query.toString()}`,
         {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-Taita-Subdomain': tenantValue,
-          },
+          headers: fetchHeaders,
           timeout: 10000,
         }
       );
@@ -485,18 +495,35 @@ query.set('tenant', tenantValue);
     }
     
     try {
+      // Include subscriber token if available
+      const subscriberToken = useCookie('subscriber_token');
+      const fetchHeaders: Record<string, string> = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Taita-Subdomain': currentTenant.value || 'demo',
+      };
+      if (subscriberToken.value) {
+        fetchHeaders['Authorization'] = `Bearer ${subscriberToken.value}`;
+      }
+
       // Make API request to get the post
-      const response = await $fetch<Post>(`${apiBaseUrl.value}/posts/public/${slug}`, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-Taita-Subdomain': currentTenant.value || 'demo',
-        },
-        params: {
-          include: 'category,tags,author',
-          tenant: currentTenant.value || 'demo'
+      let response: Post;
+      try {
+        response = await $fetch<Post>(`${apiBaseUrl.value}/posts/public/${slug}`, {
+          headers: fetchHeaders,
+          params: {
+            include: 'category,tags,author',
+            tenant: currentTenant.value || 'demo'
+          }
+        });
+      } catch (fetchErr: any) {
+        // Handle 403 (locked content) — API returns post metadata with content stripped
+        if (fetchErr.statusCode === 403 && fetchErr.data?.post) {
+          response = fetchErr.data.post;
+        } else {
+          throw fetchErr;
         }
-      });
+      }
       
       // Update currentPost in the store
       currentPost.value = response;
