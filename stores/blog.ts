@@ -305,20 +305,48 @@ const isStaticMode = nuxtApp?.$staticMode ?? config.staticMode ?? false;
       };
     }
     
-    // For server-side rendering in development
+    // For server-side rendering
     if (process.server && !isStaticMode) {
       try {
-        // Use a simple fetch during SSR
-        const response = await $fetch(`${apiBaseUrl.value}/posts`, {
-          params: {
-            ...params,
-            tenant: currentTenant.value
+        const query = new URLSearchParams();
+
+        // Add pagination
+        if (params.page) query.append('page', params.page.toString());
+        if (params.limit) query.append('limit', params.limit.toString());
+        if (params.per_page) query.append('per_page', params.per_page.toString());
+
+        // Add filters
+        if (params.category_id) query.append('category_id', params.category_id.toString());
+        if (params.tag_id) query.append('tag_id', params.tag_id.toString());
+        if (params.search) query.append('search', params.search.toString());
+        if (params.featured) query.append('featured', params.featured.toString());
+        if (params.status) query.append('status', params.status.toString());
+
+        // Add includes
+        if (params.include) query.append('include', params.include.toString());
+
+        // Add sorting
+        if (params.orderBy) query.append('orderBy', params.orderBy.toString());
+        if (params.order) query.append('order', params.order.toString());
+
+        // Tenant
+        let tenantValue = currentTenant.value || 'demo';
+        if (/^192\./.test(tenantValue)) tenantValue = 'demo';
+        query.set('tenant', tenantValue);
+
+        const response = await $fetch<PaginatedResponse<Post>>(
+          `${apiBaseUrl.value}/posts/public?${query.toString()}`,
+          {
+            headers: {
+              'Accept': 'application/json',
+              'X-Taita-Subdomain': tenantValue,
+            },
+            timeout: 10000,
           }
-        });
-        return response as PaginatedResponse<Post>;
+        );
+        return response;
       } catch (error) {
         console.error('[BlogStore] Error fetching posts during SSR:', error);
-        // Return empty data on error during SSR
         return {
           data: [],
           current_page: 1,
