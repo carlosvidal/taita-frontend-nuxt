@@ -1,7 +1,7 @@
 <template>
   <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
     <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
         <!-- Columna 1: Acerca de -->
         <div>
           <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
@@ -52,6 +52,31 @@
               <a href="https://github.com/tu-usuario/taita-blog" target="_blank" rel="noopener noreferrer" class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
                 GitHub
               </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Columna 4: Legal -->
+        <div>
+          <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+            Legal
+          </h3>
+          <ul class="mt-4 space-y-2">
+            <li>
+              <NuxtLink
+                to="/privacy"
+                class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+              >
+                Política de Privacidad
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink
+                to="/subscribe"
+                class="text-base text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+              >
+                Suscríbete
+              </NuxtLink>
             </li>
           </ul>
         </div>
