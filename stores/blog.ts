@@ -1076,9 +1076,10 @@ const url = `${apiBaseUrl.value}/tags/public/${tagSlug}/posts?tenant=${safeTenan
 
   // Set tenant and update API base URL
   const setTenant = (tenant: string) => {
-    if (!process.client) return;
     currentTenant.value = tenant;
-    updateUrls();
+    if (process.client) {
+      updateUrls();
+    }
   };
 
   // Return the store

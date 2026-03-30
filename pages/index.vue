@@ -81,19 +81,9 @@ const { data: recentPosts, pending: loading, error: fetchError } = await useAsyn
   'home-posts',
   async () => {
     try {
-      // For normal operation, use a safe tenant/subdomain approach
-      let tenant = 'taita'; // Default tenant
-
-      if (process.client) {
-        // Client-side tenant detection
-        const hostname = window?.location?.hostname || '';
-        const subdomain = hostname.split('.')[0];
-        tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain)
-          ? 'taita'
-          : subdomain;
-      }
-
-      // Configure tenant
+      // Determine tenant (works both SSR and client)
+      const { getTenant } = useTenant();
+      const tenant = getTenant();
       blogStore.setTenant(tenant);
 
       // Fetch recent posts

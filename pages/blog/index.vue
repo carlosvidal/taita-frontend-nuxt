@@ -288,15 +288,9 @@ const { data: posts, pending: loading, error: fetchError, refresh: refreshPosts 
   'blog-posts',
   async () => {
     try {
-      // Determine tenant
-      let tenant = 'taita';
-      if (process.client) {
-        const hostname = window?.location?.hostname || '';
-        const subdomain = hostname.split('.')[0];
-        tenant = ['localhost', '127.0.0.1', 'www', ''].includes(subdomain)
-          ? 'taita'
-          : subdomain;
-      }
+      // Determine tenant (works both SSR and client)
+      const { getTenant } = useTenant();
+      const tenant = getTenant();
       blogStore.setTenant(tenant);
 
       const params: Record<string, any> = {
@@ -432,11 +426,13 @@ const applyFilters = () => {
   updateRoute();
 };
 
-const resetFilters = () => {
+const resetFilters = async () => {
   searchQuery.value = '';
   sortBy.value = 'newest';
   currentPage.value = 1;
   updateRoute();
+  // Force refresh in case values didn't change (watch won't trigger)
+  await refreshPosts();
 };
 
 const updateRoute = () => {
