@@ -151,7 +151,7 @@ onMounted(async () => {
     console.log('[Footer] socialNetworks:', settings?.socialNetworks);
     console.log('[Footer] socialNetworks type:', typeof settings?.socialNetworks);
 
-    blogName.value = settings?.title || settings?.name || '';
+    blogName.value = settings?.name || settings?.title || '';
     blogDescription.value = settings?.description || '';
     socialNetworks.value = settings?.socialNetworks || null;
 

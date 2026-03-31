@@ -24,7 +24,7 @@ const { setThemeFromSettings } = useTheme();
 onMounted(async () => {
   try {
     const settings = await blogStore.fetchSettings();
-    blogTitle.value = settings?.title || settings?.name || 'Blog';
+    blogTitle.value = settings?.name || settings?.title || 'Blog';
 
     // Apply blog theme
     setThemeFromSettings(settings);

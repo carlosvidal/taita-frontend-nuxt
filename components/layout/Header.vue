@@ -101,7 +101,7 @@ onMounted(async () => {
     console.log('[Header] Settings.title:', settings?.title);
     console.log('[Header] Settings.name:', settings?.name);
 
-    blogName.value = settings?.title || settings?.name || 'Blog';
+    blogName.value = settings?.name || settings?.title || 'Blog';
     console.log('[Header] Blog name set to:', blogName.value);
 
     const result = await api.getMenu();
