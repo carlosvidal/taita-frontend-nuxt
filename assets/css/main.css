@@ -5,7 +5,7 @@
 /* Estilos personalizados */
 body {
   @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--theme-font-ui);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -43,4 +43,10 @@ input, textarea {
 }
 
 
-/* Elimina variables personalizadas si existen en la hoja, y refuerza el uso de utilidades Tailwind */
+/* Theme-aware accent color for links and interactive elements */
+a.theme-accent {
+  color: var(--theme-accent);
+}
+a.theme-accent:hover {
+  color: var(--theme-accent-hover);
+}

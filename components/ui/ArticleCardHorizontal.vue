@@ -45,7 +45,7 @@
           </div>
 
           <!-- Title -->
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2" style="font-family: var(--theme-font-heading); letter-spacing: var(--theme-heading-tracking);">
             <NuxtLink :to="`/blog/${post.slug}`" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
               {{ post.title }}
             </NuxtLink>

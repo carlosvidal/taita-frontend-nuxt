@@ -43,6 +43,7 @@ export default defineNuxtConfig({
 
   // CSS
   css: [
+    '~/assets/css/themes.css',
     '~/assets/css/main.css',
     '~/assets/css/reading-theme.css',
   ],
@@ -81,7 +82,7 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;600;700;800;900&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap',
         },
       ],
       script: [

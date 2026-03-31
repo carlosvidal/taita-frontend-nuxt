@@ -19,11 +19,15 @@ import { useBlogStore } from '~/stores/blog';
 
 const blogStore = useBlogStore();
 const blogTitle = ref('Blog');
+const { setThemeFromSettings } = useTheme();
 
 onMounted(async () => {
   try {
     const settings = await blogStore.fetchSettings();
     blogTitle.value = settings?.title || settings?.name || 'Blog';
+
+    // Apply blog theme
+    setThemeFromSettings(settings);
 
     // Update page title and meta tags
     if (typeof document !== 'undefined') {
@@ -52,8 +56,8 @@ body {
   @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
 }
 
-/* Ensure proper font rendering */
+/* Use theme UI font as default */
 html {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--theme-font-ui);
 }
 </style>

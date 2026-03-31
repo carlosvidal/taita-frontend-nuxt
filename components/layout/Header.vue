@@ -4,7 +4,7 @@
       <div class="flex justify-between h-16">
         <!-- Logo -->
         <div class="flex-shrink-0 flex items-center">
-          <NuxtLink to="/" class="text-xl font-bold text-gray-900 dark:text-white">
+          <NuxtLink to="/" class="text-xl font-bold text-gray-900 dark:text-white" style="font-family: var(--theme-font-heading);">
             {{ blogName || 'Blog' }}
           </NuxtLink>
         </div>

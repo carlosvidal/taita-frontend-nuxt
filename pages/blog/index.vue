@@ -2,7 +2,7 @@
   <div class="py-8">
     <!-- Header -->
     <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl" style="font-family: var(--theme-font-heading); letter-spacing: var(--theme-heading-tracking);">
         Blog
       </h1>
       <p class="mt-3 text-xl text-gray-500 dark:text-gray-300">

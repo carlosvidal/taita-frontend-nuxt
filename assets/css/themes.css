@@ -1,0 +1,364 @@
+/*
+ * Taita Blog Themes
+ * Each theme defines CSS custom properties for typography, colors, spacing, and style.
+ * Themes work with both light and dark modes.
+ */
+
+/* ============================================================
+   BASE THEME VARIABLES (defaults — overridden per theme)
+   ============================================================ */
+
+:root {
+  /* Typography */
+  --theme-font-heading: 'Lora', 'Merriweather', 'Georgia', serif;
+  --theme-font-body: 'Lora', 'Merriweather', 'Georgia', serif;
+  --theme-font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --theme-font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+
+  /* Heading style */
+  --theme-heading-weight: 700;
+  --theme-heading-tracking: -0.01em;
+  --theme-heading-transform: none;
+
+  /* Body type scale */
+  --theme-text-base: 1.0625rem;
+  --theme-leading: 1.625;
+  --theme-paragraph-spacing: 1.5em;
+
+  /* Layout */
+  --theme-content-width: 680px;
+  --theme-radius: 0px;
+  --theme-card-radius: 8px;
+
+  /* Features */
+  --theme-drop-cap: 1;
+  --theme-h2-border: 1;
+
+  /* Light mode colors */
+  --theme-accent: #c62828;
+  --theme-accent-hover: #a01c1c;
+  --theme-accent-light: #fef2f2;
+
+  --theme-bg-primary: #ffffff;
+  --theme-bg-secondary: #fafafa;
+  --theme-bg-tertiary: #f5f5f5;
+
+  --theme-text-primary: #1a1a1a;
+  --theme-text-secondary: #4a4a4a;
+  --theme-text-tertiary: #767676;
+  --theme-text-muted: #9a9a9a;
+
+  --theme-border: #e5e5e5;
+  --theme-border-light: #f0f0f0;
+
+  --theme-badge-bg: var(--theme-text-primary);
+  --theme-badge-text: var(--theme-bg-primary);
+  --theme-tag-bg: var(--theme-bg-tertiary);
+  --theme-tag-text: var(--theme-text-secondary);
+  --theme-tag-border: var(--theme-border);
+}
+
+html.dark {
+  --theme-accent-light: rgba(198, 40, 40, 0.15);
+
+  --theme-bg-primary: #1a1a1a;
+  --theme-bg-secondary: #242424;
+  --theme-bg-tertiary: #2d2d2d;
+
+  --theme-text-primary: #e8e8e8;
+  --theme-text-secondary: #b8b8b8;
+  --theme-text-tertiary: #8a8a8a;
+  --theme-text-muted: #666666;
+
+  --theme-border: #3a3a3a;
+  --theme-border-light: #2d2d2d;
+
+  --theme-badge-bg: var(--theme-text-primary);
+  --theme-badge-text: var(--theme-bg-primary);
+  --theme-tag-bg: var(--theme-bg-tertiary);
+  --theme-tag-text: var(--theme-text-secondary);
+  --theme-tag-border: var(--theme-border);
+}
+
+
+/* ============================================================
+   1. EDITORIAL (default)
+   Inspired by: Write (Themegraphy), The New Yorker, NYTimes
+   Serif-heavy, elegant, literary, drop caps
+   ============================================================ */
+
+/* editorial is the default — variables defined above in :root */
+
+
+/* ============================================================
+   2. CLEAN
+   Inspired by: Medium
+   Georgia serif, green accent, generous whitespace
+   ============================================================ */
+
+html[data-theme="clean"] {
+  --theme-font-heading: 'Georgia', 'Cambria', 'Times New Roman', serif;
+  --theme-font-body: 'Georgia', 'Cambria', 'Times New Roman', serif;
+  --theme-font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --theme-heading-weight: 700;
+  --theme-heading-tracking: -0.016em;
+
+  --theme-text-base: 1.125rem;
+  --theme-leading: 1.72;
+  --theme-paragraph-spacing: 2em;
+  --theme-content-width: 680px;
+
+  --theme-radius: 4px;
+  --theme-card-radius: 8px;
+  --theme-drop-cap: 0;
+  --theme-h2-border: 0;
+
+  --theme-accent: #1a8917;
+  --theme-accent-hover: #0f7a0f;
+  --theme-accent-light: #f0faf0;
+}
+
+html.dark[data-theme="clean"] {
+  --theme-accent: #2ec42b;
+  --theme-accent-hover: #45d942;
+  --theme-accent-light: rgba(26, 137, 23, 0.15);
+}
+
+
+/* ============================================================
+   3. NOTION
+   Inspired by: Notion
+   System UI, blue accent, ultra-minimal, clean borders
+   ============================================================ */
+
+html[data-theme="notion"] {
+  --theme-font-heading: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --theme-font-body: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --theme-font-ui: -apple-system, 'Segoe UI', system-ui, sans-serif;
+
+  --theme-heading-weight: 600;
+  --theme-heading-tracking: -0.02em;
+
+  --theme-text-base: 1rem;
+  --theme-leading: 1.6;
+  --theme-paragraph-spacing: 1.25em;
+  --theme-content-width: 720px;
+
+  --theme-radius: 4px;
+  --theme-card-radius: 6px;
+  --theme-drop-cap: 0;
+  --theme-h2-border: 0;
+
+  --theme-accent: #2383e2;
+  --theme-accent-hover: #1b6ec2;
+  --theme-accent-light: #eef6ff;
+
+  --theme-bg-secondary: #fbfbfa;
+  --theme-bg-tertiary: #f1f1ef;
+  --theme-border: #e3e3e0;
+  --theme-border-light: #ebebea;
+}
+
+html.dark[data-theme="notion"] {
+  --theme-accent: #529cca;
+  --theme-accent-hover: #6db3df;
+  --theme-accent-light: rgba(35, 131, 226, 0.15);
+
+  --theme-bg-primary: #191919;
+  --theme-bg-secondary: #202020;
+  --theme-bg-tertiary: #2c2c2c;
+  --theme-border: #373737;
+  --theme-border-light: #2c2c2c;
+}
+
+
+/* ============================================================
+   4. STARTER
+   Inspired by: minimalio (WP), Go (WP)
+   Sans-serif, monochrome, stark, grid-focused
+   ============================================================ */
+
+html[data-theme="starter"] {
+  --theme-font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+  --theme-font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --theme-font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --theme-heading-weight: 800;
+  --theme-heading-tracking: -0.03em;
+
+  --theme-text-base: 1rem;
+  --theme-leading: 1.6;
+  --theme-paragraph-spacing: 1.5em;
+  --theme-content-width: 640px;
+
+  --theme-radius: 0px;
+  --theme-card-radius: 0px;
+  --theme-drop-cap: 0;
+  --theme-h2-border: 0;
+
+  --theme-accent: #111111;
+  --theme-accent-hover: #333333;
+  --theme-accent-light: #f5f5f5;
+
+  --theme-border: #e0e0e0;
+  --theme-border-light: #f0f0f0;
+}
+
+html.dark[data-theme="starter"] {
+  --theme-accent: #ffffff;
+  --theme-accent-hover: #cccccc;
+  --theme-accent-light: rgba(255, 255, 255, 0.08);
+}
+
+
+/* ============================================================
+   5. DAWN
+   Inspired by: Dawn (Ghost)
+   Modern serif, Playfair Display headings, airy, light
+   ============================================================ */
+
+html[data-theme="dawn"] {
+  --theme-font-heading: 'Playfair Display', 'Georgia', serif;
+  --theme-font-body: 'Source Serif 4', 'Georgia', serif;
+  --theme-font-ui: 'Inter', system-ui, sans-serif;
+
+  --theme-heading-weight: 700;
+  --theme-heading-tracking: -0.01em;
+
+  --theme-text-base: 1.0625rem;
+  --theme-leading: 1.7;
+  --theme-paragraph-spacing: 1.75em;
+  --theme-content-width: 720px;
+
+  --theme-radius: 6px;
+  --theme-card-radius: 12px;
+  --theme-drop-cap: 0;
+  --theme-h2-border: 0;
+
+  --theme-accent: #3eb0ef;
+  --theme-accent-hover: #2196d3;
+  --theme-accent-light: #eef8ff;
+
+  --theme-bg-secondary: #fafbfc;
+  --theme-bg-tertiary: #f4f5f7;
+}
+
+html.dark[data-theme="dawn"] {
+  --theme-accent: #5cc5ff;
+  --theme-accent-hover: #7dd3ff;
+  --theme-accent-light: rgba(62, 176, 239, 0.12);
+}
+
+
+/* ============================================================
+   6. EDGE
+   Inspired by: Edge (Ghost)
+   Bold geometric sans-serif, orange accent, sharp
+   ============================================================ */
+
+html[data-theme="edge"] {
+  --theme-font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+  --theme-font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --theme-font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --theme-heading-weight: 800;
+  --theme-heading-tracking: -0.04em;
+  --theme-heading-transform: none;
+
+  --theme-text-base: 1.0625rem;
+  --theme-leading: 1.6;
+  --theme-paragraph-spacing: 1.5em;
+  --theme-content-width: 700px;
+
+  --theme-radius: 0px;
+  --theme-card-radius: 0px;
+  --theme-drop-cap: 0;
+  --theme-h2-border: 0;
+
+  --theme-accent: #ff5500;
+  --theme-accent-hover: #e04b00;
+  --theme-accent-light: #fff5f0;
+
+  --theme-border: #e5e5e5;
+  --theme-border-light: #f2f2f2;
+}
+
+html.dark[data-theme="edge"] {
+  --theme-accent: #ff7733;
+  --theme-accent-hover: #ff9955;
+  --theme-accent-light: rgba(255, 85, 0, 0.12);
+}
+
+
+/* ============================================================
+   7. HEADLINE
+   Inspired by: Headline (Ghost)
+   Huge impactful headings, mixed serif body + sans heading
+   ============================================================ */
+
+html[data-theme="headline"] {
+  --theme-font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+  --theme-font-body: 'Georgia', 'Cambria', 'Times New Roman', serif;
+  --theme-font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --theme-heading-weight: 900;
+  --theme-heading-tracking: -0.05em;
+  --theme-heading-transform: none;
+
+  --theme-text-base: 1.0625rem;
+  --theme-leading: 1.65;
+  --theme-paragraph-spacing: 1.5em;
+  --theme-content-width: 680px;
+
+  --theme-radius: 0px;
+  --theme-card-radius: 4px;
+  --theme-drop-cap: 0;
+  --theme-h2-border: 1;
+
+  --theme-accent: #111111;
+  --theme-accent-hover: #333333;
+  --theme-accent-light: #f5f5f5;
+}
+
+html.dark[data-theme="headline"] {
+  --theme-accent: #ffffff;
+  --theme-accent-hover: #dddddd;
+  --theme-accent-light: rgba(255, 255, 255, 0.08);
+}
+
+
+/* ============================================================
+   8. MAGAZINE
+   Inspired by: Gillion (WP), Bridge (WP)
+   Playfair Display + Lora, pink/magenta accent, polished
+   ============================================================ */
+
+html[data-theme="magazine"] {
+  --theme-font-heading: 'Playfair Display', 'Georgia', serif;
+  --theme-font-body: 'Lora', 'Georgia', serif;
+  --theme-font-ui: 'Inter', system-ui, sans-serif;
+
+  --theme-heading-weight: 700;
+  --theme-heading-tracking: -0.01em;
+
+  --theme-text-base: 1.0625rem;
+  --theme-leading: 1.65;
+  --theme-paragraph-spacing: 1.5em;
+  --theme-content-width: 700px;
+
+  --theme-radius: 8px;
+  --theme-card-radius: 12px;
+  --theme-drop-cap: 1;
+  --theme-h2-border: 0;
+
+  --theme-accent: #d4377b;
+  --theme-accent-hover: #b42d68;
+  --theme-accent-light: #fdf2f7;
+}
+
+html.dark[data-theme="magazine"] {
+  --theme-accent: #e85d9c;
+  --theme-accent-hover: #f07db3;
+  --theme-accent-light: rgba(212, 55, 123, 0.15);
+}

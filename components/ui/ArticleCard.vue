@@ -33,7 +33,7 @@
         </div>
 
         <!-- Title -->
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2" style="font-family: var(--theme-font-heading); letter-spacing: var(--theme-heading-tracking);">
           {{ post.title }}
         </h3>
 
