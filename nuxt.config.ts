@@ -161,16 +161,19 @@ export default defineNuxtConfig({
   },
 
   // Sitemap - fetches published posts from API
+  // NOTE: siteUrl is NOT set here — it resolves dynamically from the Host header
+  // via nuxt-site-config, which is required for multi-tenant subdomains.
   sitemap: {
-    siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://taita.blog',
     sources: [
       '/api/__sitemap__/urls',
     ],
   },
 
   // Schema.org
+  // NOTE: site.url is NOT set here so it resolves dynamically from the
+  // request Host header (via nuxt-site-config). This is essential for
+  // multi-tenant sitemap and SEO — each subdomain needs its own origin.
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://taita.blog',
     name: 'Taita Blog',
     description: 'A modern blog built with Nuxt 3 and TypeScript',
     defaultLocale: 'en',

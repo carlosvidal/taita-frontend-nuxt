@@ -25,7 +25,9 @@ jobs:
           NUXT_PUBLIC_API_BASE: https://backend.taita.blog
           NUXT_PUBLIC_IMAGE_URL: https://backend.taita.blog
           NUXT_PUBLIC_SITE_NAME: Taita Blog
-          NUXT_PUBLIC_SITE_URL: https://taita.blog
+          # NOTE: NUXT_PUBLIC_SITE_URL is intentionally omitted so that
+          # nuxt-site-config resolves the origin from the request Host header.
+          # This is required for multi-tenant sitemap/SEO with wildcard subdomains.
           NUXT_PUBLIC_MAIN_DOMAIN: taita.blog
           NUXT_PUBLIC_TENANT_DOMAIN: taita.blog
           NODE_ENV: production
