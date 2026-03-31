@@ -267,6 +267,11 @@ const router = useRouter();
 const config = useRuntimeConfig();
 const blogStore = useBlogStore();
 
+// Detect tenant once for use in useAsyncData keys
+const { getTenant } = useTenant();
+const tenant = getTenant();
+blogStore.setTenant(tenant);
+
 // Estado (filters and pagination remain as refs since they are user-driven)
 const searchQuery = ref('');
 const sortBy = ref('newest');
@@ -285,14 +290,9 @@ parseRouteQuery();
 
 // Fetch posts via useAsyncData (runs on both server and client)
 const { data: posts, pending: loading, error: fetchError, refresh: refreshPosts } = await useAsyncData(
-  'blog-posts',
+  `blog-posts-${tenant}`,
   async () => {
     try {
-      // Determine tenant (works both SSR and client)
-      const { getTenant } = useTenant();
-      const tenant = getTenant();
-      blogStore.setTenant(tenant);
-
       const params: Record<string, any> = {
         page: currentPage.value,
         per_page: perPage.value,
@@ -339,7 +339,7 @@ const { data: posts, pending: loading, error: fetchError, refresh: refreshPosts 
 
 // Fetch categories via useAsyncData
 const { data: categories } = await useAsyncData(
-  'blog-categories',
+  `blog-categories-${tenant}`,
   async () => {
     try {
       const response = await blogStore.fetchCategories();
@@ -356,7 +356,7 @@ const { data: categories } = await useAsyncData(
 
 // Fetch popular tags via useAsyncData
 const { data: popularTags } = await useAsyncData(
-  'blog-popular-tags',
+  `blog-popular-tags-${tenant}`,
   async () => {
     try {
       const response = await blogStore.fetchTags({

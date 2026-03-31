@@ -230,6 +230,11 @@ const route = useRoute();
 const router = useRouter();
 const blogStore = useBlogStore();
 
+// Detect tenant once for use in useAsyncData keys
+const { getTenant } = useTenant();
+const tenantId = getTenant();
+blogStore.setTenant(tenantId);
+
 // Pagination state (user-driven, remains as refs)
 const currentPage = ref(1);
 const perPage = ref(10);
@@ -251,7 +256,7 @@ parseRouteQuery();
 
 // Fetch tag + related tags via useAsyncData
 const { data: tagData, error: tagError } = await useAsyncData(
-  `tag-${route.params.slug}`,
+  `tag-${tenantId}-${route.params.slug}`,
   async () => {
     const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
 
@@ -283,7 +288,7 @@ const relatedTags = computed(() => tagData.value?.relatedTags || []);
 
 // Fetch popular categories via useAsyncData
 const { data: popularCategories } = await useAsyncData(
-  'tag-popular-categories',
+  `tag-popular-categories-${tenantId}`,
   async () => {
     try {
       const categories = await blogStore.fetchCategories();
@@ -300,7 +305,7 @@ const { data: popularCategories } = await useAsyncData(
 
 // Fetch posts via useAsyncData
 const { data: posts, pending: loading, error: fetchError } = await useAsyncData(
-  `tag-posts-${route.params.slug}`,
+  `tag-posts-${tenantId}-${route.params.slug}`,
   async () => {
     const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
     if (!slug) return [];

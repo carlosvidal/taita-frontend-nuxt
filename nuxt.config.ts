@@ -115,12 +115,10 @@ export default defineNuxtConfig({
   },
 
   // Route rules
+  // NOTE: SWR caching is disabled for content routes because the same URL path
+  // serves different content per tenant (subdomain-based multi-tenancy).
+  // Nitro's SWR cache keys by path only, not by Host header.
   routeRules: {
-    '/': { swr: 300 },                // Homepage: cached 5 min
-    '/blog': { swr: 300 },            // Blog listing: cached 5 min
-    '/blog/**': { swr: 3600 },        // Post detail: cached 1 hour
-    '/category/**': { swr: 600 },     // Category pages: cached 10 min
-    '/tag/**': { swr: 600 },          // Tag pages: cached 10 min
     '/_nuxt/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/images/**': { headers: { 'cache-control': 'public, max-age=31536000' } },
     '/favicon.ico': { headers: { 'cache-control': 'public, max-age=31536000' } },

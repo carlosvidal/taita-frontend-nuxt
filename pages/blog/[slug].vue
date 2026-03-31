@@ -154,6 +154,11 @@ import AdSlot from '~/components/ui/AdSlot.vue';
 const route = useRoute();
 const blogStore = useBlogStore();
 
+// Detect tenant once for use in useAsyncData keys
+const { getTenant } = useTenant();
+const tenantId = getTenant();
+blogStore.setTenant(tenantId);
+
 const slug = computed(() => route.params.slug as string);
 
 const getImageUrl = (path: string) => {
@@ -178,7 +183,7 @@ const formatDate = (dateString: string) => {
 
 // useAsyncData runs on both server and client
 const { data: post, pending: loading, error: fetchError } = await useAsyncData(
-  `post-${slug.value}`,
+  `post-${tenantId}-${slug.value}`,
   () => blogStore.fetchPost(slug.value),
   { watch: [slug] }
 );

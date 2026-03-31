@@ -60,6 +60,11 @@ const config = useRuntimeConfig();
 // Initialize store
 const blogStore = useBlogStore();
 
+// Detect tenant once for use in useAsyncData keys
+const { getTenant } = useTenant();
+const tenant = getTenant();
+blogStore.setTenant(tenant);
+
 // Format date helper
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
@@ -78,14 +83,9 @@ const { $isStatic } = useNuxtApp();
 
 // Use Nuxt's async data for both client and SSR/SSG compatibility
 const { data: recentPosts, pending: loading, error: fetchError } = await useAsyncData(
-  'home-posts',
+  `home-posts-${tenant}`,
   async () => {
     try {
-      // Determine tenant (works both SSR and client)
-      const { getTenant } = useTenant();
-      const tenant = getTenant();
-      blogStore.setTenant(tenant);
-
       // Fetch recent posts
       const response = await blogStore.fetchPosts({
         limit: 5,
