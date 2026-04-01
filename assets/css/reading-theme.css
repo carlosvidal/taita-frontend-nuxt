@@ -60,7 +60,7 @@
 }
 
 /* Headings */
-.reading-content h1,
+.reading-content h1:not(.post-title),
 .reading-content h2,
 .reading-content h3,
 .reading-content h4 {
@@ -74,7 +74,7 @@
   text-transform: var(--theme-heading-transform);
 }
 
-.reading-content h1 {
+.reading-content h1:not(.post-title) {
   font-size: var(--text-4xl);
   font-weight: var(--theme-heading-weight);
   margin-top: 0;
@@ -213,6 +213,19 @@
 
 
 /*
+ * Post title — inherits theme fonts from .reading-content parent,
+ * font-size controlled by Tailwind utility classes (text-5xl, md:text-6xl)
+ */
+
+.post-title {
+  font-family: var(--theme-font-heading);
+  letter-spacing: var(--theme-heading-tracking);
+  text-transform: var(--theme-heading-transform);
+  color: var(--theme-text-primary);
+}
+
+
+/*
  * Meta information
  */
 
@@ -334,7 +347,7 @@
     font-size: 1rem;
   }
 
-  .reading-content h1 {
+  .reading-content h1:not(.post-title) {
     font-size: var(--text-3xl);
   }
 

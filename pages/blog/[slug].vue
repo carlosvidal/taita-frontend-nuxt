@@ -27,9 +27,9 @@
     </div>
 
     <!-- Post content -->
-    <article v-else-if="post" class="max-w-4xl mx-auto px-6 py-16">
+    <article v-else-if="post" class="reading-content max-w-4xl mx-auto px-6 py-16">
       <!-- Post title -->
-      <h1 class="reading-content text-5xl md:text-6xl font-bold mb-6">
+      <h1 class="post-title text-5xl md:text-6xl font-bold mb-6">
         {{ post.title }}
       </h1>
 
@@ -92,7 +92,7 @@
         />
       </template>
       <template v-else>
-        <div class="reading-content" v-html="post.content"></div>
+        <div v-html="post.content"></div>
       </template>
 
       <!-- Ad after content -->
